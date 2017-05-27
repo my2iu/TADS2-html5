@@ -15,7 +15,7 @@ Since the TADS interpreter often blocks while waiting for input, it doesn't work
 
 The TADS interpreter runs in a separate Web Worker thread. When it needs to do blocking I/O, it will send a message to the main JavaScript thread and then put itself to sleep. The main JavaScript thread will then do the I/O using normal HTML5 code, send the results to the TADS interpreter using shared memory, and then wake the TADS interpreter thread.
 
-The code can be compiled by unzipping [`tads_src-2516.zip`](http://www.ifarchive.org/if-archive/programming/tads2/source/htads_src_2516.zip) into the `tads2` directory and then running the `BUILD.BAT` script (this assumes that you are using a Windows machine and that you have Emscripten installed).
+The code can be compiled by unzipping [`tads_src-2516.zip`](http://www.ifarchive.org/if-archive/programming/tads2/source/htads_src_2516.zip) into the `tads2` directory and then running the `BUILD.BAT` script (this assumes that you are using a Windows machine and that you have Emscripten installed). Running that build script will compile the C code of the TADS interpreter to the JavaScript file `bin/lib/tr.js`.
 
 - The `tadsunix` directory contains code that came from the source [`tads23-unix.tar.gz`](http://www.ifarchive.org/if-archive/programming/tads2/source/tads23-unix.tar.gz). 
 - The `tads2es6` directory contains C/C++ code for interfacing with JavaScript
