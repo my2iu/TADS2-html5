@@ -1,5 +1,5 @@
 # TADS2-html5
-A very rough proof-of-concept port of the TADS 2 interpreter for HTML5. It recompiles the TADS2 interpreter code into JavaScript using Emscripten
+A very rough proof-of-concept port of the [TADS 2](http://tads.org/) interpreter for HTML5. It recompiles the TADS2 interpreter code into JavaScript using Emscripten
 
 To run it, download the code, then visit the `index.html` file in the `bin` directory in a browser. The code requires newer JavaScript features that are not yet available in most browsers.
 
