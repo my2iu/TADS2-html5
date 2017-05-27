@@ -1,3 +1,10 @@
+The code in this repository extends and reuses code from the TADS2 interpreter, 
+which is made available under GPL2, making this code licensed under GPL2 as well.
+The JavaScript code in this repository is not derived from the TADS2 interpreter
+code, so it is made available under the terms of the Unlicense <http://unlicense.org>
+and the GPL2.
+
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
 
