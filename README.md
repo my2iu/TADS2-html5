@@ -18,6 +18,5 @@ The TADS interpreter runs in a separate Web Worker thread. When it needs to do b
 The code can be compiled by unzipping [`tads_src-2516.zip`](http://www.ifarchive.org/if-archive/programming/tads2/source/htads_src_2516.zip) into the `tads2` directory and then running the `BUILD.BAT` script (this assumes that you are using a Windows machine and that you have Emscripten installed). Running that build script will compile the C code of the TADS interpreter to the JavaScript file `bin/lib/tr.js`.
 
 - The `tadsunix` directory contains code that came from the source [`tads23-unix.tar.gz`](http://www.ifarchive.org/if-archive/programming/tads2/source/tads23-unix.tar.gz). 
-- The `tads2es6` directory contains C/C++ code for interfacing with JavaScript
-- The `js` directory contains JavaScript code that is called from the `tads2es6`
+- The `tads2es6` directory contains C/C++ and JavaScript code for interfacing with html5 and the main UI thread
 - The `bin` directory contains the main UI code and the web worker code which starts the C TADS2 interpreter code
