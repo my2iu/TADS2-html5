@@ -492,8 +492,8 @@ osfildef *osfoprwb(const char *fname, os_filetype_t typ);
 
 //#ifdef  USE_STDIO
 /* #  define USE_NULLINIT */
-#  define USE_NULLSTAT
-#  define USE_NULLSCORE
+//#  define USE_NULLSTAT
+//#  define USE_NULLSCORE
 //#else   /* USE_STDIO */
 //#  define RUNTIME
 //#  define USE_FSDBUG

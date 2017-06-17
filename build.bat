@@ -3,7 +3,7 @@ set TADSUNIXDIR=tadsunix\
 set TADSES6=tads2es6\
 rem set EMCC_AUTODEBUG=1
 rem set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -O2 
-set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -DOSANSI -DUNIX -DHAVE_STRCASECMP 
+set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP 
 set LDOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs
 
 mkdir obj

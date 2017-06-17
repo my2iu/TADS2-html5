@@ -20,7 +20,6 @@ int os_get_abs_filename(char *result_buf, size_t result_buf_size,
 }
 
 char *os_strlwr(char *s) { return strlwr(s); }
-void os_plain(void) {}
 int os_paramfile(char *buf) { return 0; }
 int os_break(void) { return 0; }
 void os_set_title(const char *title) {}
@@ -317,6 +316,42 @@ int os_get_event(unsigned long timeout, int use_timeout,
 }
 
 
+
+//****************************
+// html-tads stuff
+
+void os_start_html(void)
+{
+}
+
+void os_end_html(void)
+{
+}
+
+void os_more_prompt(void)
+{
+}
+
+void os_plain(void) 
+{
+}
+
+void os_status(int stat)
+{
+}
+
+int os_get_status()
+{
+	return 0;
+}
+
+void os_score(int cur, int turncount)
+{
+}
+
+void os_strsc(const char *p)
+{
+}
 
 
 
