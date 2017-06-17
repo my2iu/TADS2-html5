@@ -63,6 +63,35 @@
 						wakeTadsWorker();
 					}
 					break;
+				case 'start_html':
+					wakeTadsWorker();
+					break;
+				case 'end_html':
+					wakeTadsWorker();
+					break;
+				case 'more_prompt':
+					wakeTadsWorker();
+					break;
+				case 'plain':
+					wakeTadsWorker();
+					break;
+				case 'status':
+					// postMessage({type: 'status', stat: stat});
+					wakeTadsWorker();
+					break;
+				case 'get_status':
+					// postMessage({type: 'get_status'});
+					(new Int32Array(workerBuffer.buffer))[0] = 0;
+					wakeTadsWorker();
+					break;
+				case 'score':
+					// postMessage({type: 'score', cur: cur, turncount: turncount});
+					wakeTadsWorker();
+					break;
+				case 'strsc':
+					// postMessage({type: 'strsc', str: str});
+					wakeTadsWorker();
+					break;
 			}
 		}
 		

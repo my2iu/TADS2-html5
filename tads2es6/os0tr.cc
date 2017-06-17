@@ -320,37 +320,52 @@ int os_get_event(unsigned long timeout, int use_timeout,
 //****************************
 // html-tads stuff
 
+extern void js_start_html(void);
 void os_start_html(void)
 {
+	js_start_html();
 }
 
+extern void js_end_html(void);
 void os_end_html(void)
 {
+	js_end_html();
 }
 
+extern void js_more_prompt(void);
 void os_more_prompt(void)
 {
+	js_more_prompt();
 }
 
+extern void js_plain(void);
 void os_plain(void) 
 {
+	js_plain();
 }
 
+extern void js_status(int stat);
 void os_status(int stat)
 {
+	js_status(stat);
 }
 
+extern int js_get_status(void);
 int os_get_status()
 {
-	return 0;
+	return js_get_status();
 }
 
+extern int js_score(int cur, int turncount);
 void os_score(int cur, int turncount)
 {
+	js_score(cur, turncount);
 }
 
+extern void js_strsc(const char *p);
 void os_strsc(const char *p)
 {
+	js_strsc(p);
 }
 
 

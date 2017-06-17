@@ -76,5 +76,46 @@ mergeInto(LibraryManager.library, {
 	js_fclose : function(fileId) {
 		delete EsInMemoryFile.files[fileId];
 	},
-
+	js_start_html : function() {
+		callAndWait(function() {
+			postMessage({type: 'start_html'});
+		});
+	},
+	js_end_html : function () {
+		callAndWait(function() {
+			postMessage({type: 'end_html'});
+		});
+	},
+	js_more_prompt : function() {
+		callAndWait(function() {
+			postMessage({type: 'more_prompt'});
+		});
+	},
+	js_plain : function() {
+		callAndWait(function() {
+			postMessage({type: 'plain'});
+		});
+	},
+	js_status : function(stat) {
+		callAndWait(function() {
+			postMessage({type: 'status', stat: stat});
+		});
+	},
+	js_get_status : function() {
+		callAndWait(function() {
+			postMessage({type: 'get_status'});
+		});
+		return (new Int32Array(passbackBuffer.buffer))[0];
+	},
+	js_score : function(cur, turncount) {
+		callAndWait(function() {
+			postMessage({type: 'score', cur: cur, turncount: turncount});
+		});
+	},
+	js_strsc : function(s) {
+		var str = UTF8ToString(s);
+		callAndWait(function() {
+			postMessage({type: 'strsc', str: str});
+		});
+	}
 });
