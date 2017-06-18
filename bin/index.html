@@ -20,16 +20,27 @@
 		// starts up.
 		var gameFileArrayBuffer = null;
 		
+		// Where output goes to (0 = main, 1 = status, other = suppress)
+		var outputStatus = 0;
+		
 		function handleTadsWorker(e)
 		{
 			switch (e.data.type)
 			{
 				case 'printz':
 				{
-					var transcript = document.querySelector('#transcript');
-					transcript.appendChild(document.createTextNode(e.data.str));
-					// Scroll to bottom
-					document.body.scrollTop = document.body.scrollHeight;
+					if (outputStatus == 0)
+					{
+						var transcript = document.querySelector('#transcript');
+						transcript.appendChild(document.createTextNode(e.data.str));
+						// Scroll to bottom
+						document.body.scrollTop = document.body.scrollHeight;
+					}
+					else if (outputStatus == 1)
+					{
+						var statusLine = document.querySelector('#status');
+						statusLine.appendChild(document.createTextNode(e.data.str));
+					}
 					wakeTadsWorker();
 					break;
 				}
@@ -76,12 +87,11 @@
 					wakeTadsWorker();
 					break;
 				case 'status':
-					// postMessage({type: 'status', stat: stat});
+					outputStatus = e.data.stat;
 					wakeTadsWorker();
 					break;
 				case 'get_status':
-					// postMessage({type: 'get_status'});
-					(new Int32Array(workerBuffer.buffer))[0] = 0;
+					(new Int32Array(workerBuffer.buffer))[0] = outputStatus;
 					wakeTadsWorker();
 					break;
 				case 'score':
@@ -191,6 +201,7 @@
 					alert('Game file could not be loaded');
 					return;
 				}
+				document.querySelector('#transcript').innerHTML = '';
 				gameFileArrayBuffer = file;
 				startTadsWebWorker();
 			}
@@ -209,13 +220,22 @@
 	</script>
 </head>
 <body style="">
-	<input style="display: none;" type="file" accept=".gam" id="hiddenFileLoader">
-	<a href="javascript:void(0)" id="openGamLink">Open GAM file</a>
-	<div id="transcript" style="white-space: pre; padding-bottom: 2rem;"></div>
-	<div style="padding: 0.5rem;">
-		<form id="promptForm" style="margin: 0; padding: 0;">
-			<input type="text" style="width: 100%;" autofocus>
-		</form>
+	<div style="display: flex; width: 100%; height: 100%; flex-direction: column;">  <!-- Status spacer -->
+		<div id="status" style="flex-grow: 0;">
+		</div>
+		<div id="main" style="flex-grow: 1; overflow: auto;"> 
+			<div id="transcript" style="white-space: pre-wrap; padding-bottom: 2rem;">
+				<input style="display: none;" type="file" accept=".gam" id="hiddenFileLoader">
+				<div style="text-align: center; white-space: normal;">
+					<a href="javascript:void(0)" id="openGamLink">Open GAM file</a>
+				</div>
+			</div>
+			<div style="padding: 0.5rem;">
+				<form id="promptForm" style="margin: 0; padding: 0;">
+					<input type="text" style="width: 100%;" autofocus>
+				</form>
+			</div>
+		</div>
 	</div>
 </body>
 </html>
