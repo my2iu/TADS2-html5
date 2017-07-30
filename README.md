@@ -1,14 +1,9 @@
 # TADS2-html5
 A very rough proof-of-concept port of the [TADS 2](http://tads.org/) interpreter for HTML5. It recompiles the TADS2 interpreter code into JavaScript using Emscripten
 
-To run it, download the code, then visit the `index.html` file in the `bin` directory in a browser. The code requires newer JavaScript features that are not yet available in most browsers.
+To run it, download the code, then visit the `index.html` file in the `bin` directory in a browser. The code requires newer JavaScript features that are available in the most recent browsers or will be available soon.
 
-If you are using Chrome, you must start it with the following command line options: 
-```
-  --allow-file-access-from-files --js-flags=--harmony-sharedarraybuffer --enable-blink-feature=SharedArrayBuffer
-```
-
-Support for shared array buffers and synchronization primitives is already available in Safari, but I do not have a Mac, so I do not know if it works. Chrome will likely make these features turned on by default around version 60.
+The features it needs is support for shared array buffers and synchronization primitives. These features are already available in Safari and Chrome v60. It is expected to be available in Firefox by the end of August 2017, and in Edge for the Fall 2017 update release.
 
 ## Technical Details
 Since the TADS interpreter often blocks while waiting for input, it doesn't work well with the JavaScript event-driven model. I looked into JavaScript's support for generators and await/async, but they seemed to be too messy to be usable with code ported with Emscripten. I tried Emscripten's Emterpreter and Asyncify modes, but I encountered problems that I couldn't figure out. In the end, I went with using features from the new shared array buffer specification, which contains support for blocking synchronization primitives for non-UI threads. 
