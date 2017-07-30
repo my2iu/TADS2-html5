@@ -184,6 +184,14 @@ HtmlLexer.prototype.parseTagAttributes = function(tagText) {
 	return attribs;
 };
 
+HtmlLexer.prototype.lowercaseTagAttributes = function(attribs) {
+	var lowerAttribs = {};
+	for (var key in attribs)
+	{
+		lowerAttribs[key.toLowerCase()] = attribs[key];
+	}
+	return lowerAttribs;
+};
 
 // Code for managing the view (i.e. text output etc)
 function TadsView(transcriptElement, statusLineElement)
@@ -278,12 +286,17 @@ TadsView.prototype.parseHtmlInto = function(str, element)
 		if (next.startsWith('<') && lexer.isOpeningTag(next))
 		{
 			// DO SPECIAL TAG PROCESSING HERE
-			var tagName = lexer.parseTagName(next);
-			var tagAttribs = lexer.parseTagAttributes(next);
+			var tagName = lexer.parseTagName(next).toLowerCase();
+			var tagAttribs = lexer.lowercaseTagAttributes(lexer.parseTagAttributes(next));
 			if (tagName == 'tab')
 			{
 				// The <tab> tag never made it out of HTML 3. We'll only
 				// handle the simple case of tab multiple for now
+				if ('multiple' in tagAttribs)
+				{
+					var numTabs = parseInt(tagAttribs.multiple);
+					next = '&nbsp;'.repeat(numTabs);
+				}
 			}
 		}
 		processedHtml += next;
@@ -300,7 +313,7 @@ TadsView.prototype.parseHtmlInto = function(str, element)
 	}
 	
 	// Put everything we have into the document.
-	element.appendChild(this.stringHtmlToDocumentFragment(str));
+	element.appendChild(this.stringHtmlToDocumentFragment(processedHtml));
 }
 
 TadsView.prototype.forceBufferedOutputFlush = function() {
