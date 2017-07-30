@@ -167,15 +167,20 @@
 		function loadGameFileFromWeb(url, fileHandler)
 		{
 			var xhttp = new XMLHttpRequest();
+			var responded = false;
 			xhttp.responseType = 'arraybuffer';
 			xhttp.onreadystatechange = function() {
 				if (xhttp.readyState == 4)
 				{
 					fileHandler(xhttp.response);
+					responded = true;
 				}
 			}
 			xhttp.onerror = function() {
-				fileHandler(null);
+				// On a missing file, we get both a readyState 4 and an error
+				// but we only want to call the callback once.
+				if (!responded)
+					fileHandler(null);
 			}
 			xhttp.open("GET", url, true);
 			xhttp.send();
