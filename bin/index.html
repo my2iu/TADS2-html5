@@ -213,8 +213,13 @@
 				gameFileArrayBuffer = file;
 				startTadsWebWorker();
 			}
-			//var gameUrl = 'game.gam';
 			var gameUrl = null;
+			// Check the has to see if we've been passed parameters to
+			// immediately load a file
+			if (location.hash.startsWith('#!file='))
+			{
+				gameUrl = decodeURIComponent(location.hash.substring('#!file='.length));
+			}
 			if (gameUrl == null)
 			{
 				loadGameFileFromDisk(gameFileLoaded);

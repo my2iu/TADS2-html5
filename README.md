@@ -5,6 +5,9 @@ To run it, download the code, then visit the `index.html` file in the `bin` dire
 
 The features it needs is support for shared array buffers and synchronization primitives. These features are already available in Safari and Chrome v60. It is expected to be available in Firefox by the end of August 2017, and in Edge for the Fall 2017 update release.
 
+## Automatically Starting a Game
+If you are embedding the interpreter on a website and want it to automatically start a game when it loads up, simply supply the name of the game file as a hash in the URL, like `index.html#!file=game.gam` to automatically start the game file `game.gam`.
+
 ## Technical Details
 Since the TADS interpreter often blocks while waiting for input, it doesn't work well with the JavaScript event-driven model. I looked into JavaScript's support for generators and await/async, but they seemed to be too messy to be usable with code ported with Emscripten. I tried Emscripten's Emterpreter and Asyncify modes, but I encountered problems that I couldn't figure out. In the end, I went with using features from the new shared array buffer specification, which contains support for blocking synchronization primitives for non-UI threads. 
 
