@@ -21,8 +21,12 @@ TadsView.prototype.stringHtmlToDocumentFragment = function(str) {
 
 // Where output goes to (0 = main, 1 = status, other = suppress)
 TadsView.prototype.setOutputStatus = function(out) {
-	if (this.outputStatus != out)
+	if (this.outputStatus != out) {
 		this.forceBufferedOutputFlush();
+		// Clear the status line before we start writing to it.
+		if (out == 1)
+			this.statusLine.innerHTML = '';  
+	}
 	this.outputStatus = out;
 };
 
@@ -60,7 +64,7 @@ TadsView.prototype.forceBufferedOutputFlush = function() {
 		else
 			this.transcript.appendChild(document.createTextNode(str));
 		// Scroll to bottom
-		document.body.scrollTop = document.body.scrollHeight;
+		//document.body.scrollTop = document.body.scrollHeight;
 	}
 	else if (this.outputStatus == 1)
 	{
