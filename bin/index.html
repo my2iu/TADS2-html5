@@ -3,6 +3,7 @@
 	<script src="view.js"></script>
 	<script>
 		var tadsView;
+		var userInputField;
 	
 		var lock;
 		var workerBuffer = null;
@@ -35,10 +36,14 @@
 				}
 				case 'gets':
 					tadsView.outputFlushBeforeInput();
+					tadsView.showInputElement(userInputField);
+					userInputField.focus();
 					asyncExpecting = 'gets';
 					break;
 				case 'getc':
 					tadsView.outputFlushBeforeInput();
+					tadsView.showInputElement(userInputField);
+					userInputField.focus();
 					asyncExpecting = 'getc';
 					break;
 				case 'openfile':
@@ -124,33 +129,38 @@
 		function hookUi()
 		{
 			var promptForm = document.querySelector('#promptForm');
+			userInputField = promptForm.querySelector('input.userInput');
 			promptForm.addEventListener('submit', function(evt) {
 				evt.preventDefault();
 				if (window.asyncExpecting == 'gets')
 				{
 					window.asyncExpecting = null;
-					let val = promptForm.querySelector('input').value;
+					let val = userInputField.value;
 					// Echo the user input back to the screen since
 					// we will clear and reuse the input field where the
 					// player actually entered their input.
 					tadsView.appendUserInput(val);
-					promptForm.querySelector('input').value = '';
+					userInputField.value = '';
 					let utf8Text = new TextEncoder().encode(val);
 					for (let n = 0; n < utf8Text.length; n++)
 						workerBuffer[n] = utf8Text[n];
 					workerBuffer[utf8Text.length] = 0;
+					userInputField.style.display = 'none';
 					wakeTadsWorker();
 				}
 			});
-			var promptInput = document.querySelector('#promptForm input');
-			promptInput.addEventListener('keypress', function(evt) {
+			userInputField.addEventListener('keypress', function(evt) {
 				if (window.asyncExpecting == 'getc')
 				{
 					evt.preventDefault();
 					window.asyncExpecting = null;
 					(new Int32Array(workerBuffer.buffer))[0] = evt.keyCode;//' '.charCodeAt(0);
+					userInputField.style.display = 'none';
 					wakeTadsWorker();
 				}
+			});
+			promptForm.addEventListener('click', function(evt) {
+				userInputField.focus();
 			});
 		}
 		
@@ -216,24 +226,28 @@
 			}
 		}
 	</script>
+	<style>
+		.userInput, .userInput:active, .userInput:focus {
+			border: 0px;
+			outline: none;
+		}
+	</style>
 </head>
 <body style="">
-	<div style="display: flex; width: 100%; height: 100%; flex-direction: column;">  <!-- Status spacer -->
-		<div id="status" style="flex-grow: 0;">
-		</div>
-		<div id="main" style="flex-grow: 1; overflow: auto;"> 
-			<div id="transcript" style="padding-bottom: 2rem;">
-				<input style="display: none;" type="file" accept=".gam" id="hiddenFileLoader">
-				<div style="text-align: center; white-space: normal; padding-top: 3em;">
-					<a href="javascript:void(0)" id="openGamLink">Open GAM file</a>
+	<form id="promptForm" style="margin: 0; padding: 0;">
+		<div style="display: flex; width: 100%; height: 100%; flex-direction: column;">  <!-- Status spacer -->
+			<div id="status" style="flex-grow: 0;">
+			</div>
+			<div id="main" style="flex-grow: 1; overflow: auto;"> 
+				<div id="transcript" style="padding-bottom: 2rem;">
+					<input style="display: none;" type="file" accept=".gam" id="hiddenFileLoader">
+					<div style="text-align: center; white-space: normal; padding-top: 3em;">
+						<a href="javascript:void(0)" id="openGamLink">Open GAM file</a>
+					</div>
 				</div>
-			</div>
-			<div style="padding: 0.5rem;">
-				<form id="promptForm" style="margin: 0; padding: 0;">
-					<input type="text" style="width: 100%;" autofocus>
-				</form>
+				<input class="userInput" type="text" style="display: none; border: 0px;">
 			</div>
 		</div>
-	</div>
+	</form>
 </body>
 </html>

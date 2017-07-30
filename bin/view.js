@@ -76,7 +76,7 @@ TadsView.prototype.appendUserInput = function(val) {
 		this.print(val + '<br>');
 	else
 		this.print(val + '\n');
-}
+};
 
 TadsView.prototype.forceBufferedOutputFlush = function() {
 	var str = this.bufferedOutput;
@@ -111,7 +111,7 @@ TadsView.prototype.forceBufferedOutputFlush = function() {
 			this.statusLine.appendChild(document.createTextNode(str));
 		}
 	}
-}
+};
 
 // In HTML mode, we may receive partial tags and incomplete HTML output
 // that we need to hold-off from displaying until we figure out how to
@@ -120,4 +120,29 @@ TadsView.prototype.forceBufferedOutputFlush = function() {
 // appropriate in order to do so.
 TadsView.prototype.outputFlushBeforeInput = function() {
 	this.forceBufferedOutputFlush();
-}
+};
+
+// Puts the given input element at the current transcript position
+TadsView.prototype.showInputElement = function(el) {
+	if (this.isHtmlMode)
+	{
+		this.transcript.appendChild(el);
+	}
+	else
+	{
+		if (this.plainTranscriptDiv == null)
+		{
+			this.plainTranscriptDiv = document.createElement('div');
+			this.plainTranscriptDiv.style.whiteSpace = 'pre-wrap';
+			this.transcript.appendChild(this.plainTranscriptDiv);
+		}
+		this.plainTranscriptDiv.appendChild(el);
+	}
+	el.style.display = '';
+	// Shrink the input element initially to get its position
+	el.style.width = '1em';
+	// Figure out the position of the prompt, so we can size the width to
+	// fill the rest of the line.
+	var left = el.offsetLeft;
+	el.style.width = 'calc(100% - ' + left + 'px)';
+};
