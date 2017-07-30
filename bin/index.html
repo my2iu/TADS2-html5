@@ -34,9 +34,11 @@
 					break;
 				}
 				case 'gets':
+					tadsView.outputFlushBeforeInput();
 					asyncExpecting = 'gets';
 					break;
 				case 'getc':
+					tadsView.outputFlushBeforeInput();
 					asyncExpecting = 'getc';
 					break;
 				case 'openfile':
@@ -72,6 +74,7 @@
 					wakeTadsWorker();
 					break;
 				case 'more_prompt':
+					tadsView.outputFlushBeforeInput();
 					wakeTadsWorker();
 					break;
 				case 'plain':
