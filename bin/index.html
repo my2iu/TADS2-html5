@@ -1,6 +1,9 @@
 <html>
 <head>
+	<script src="view.js"></script>
 	<script>
+		var tadsView;
+	
 		var lock;
 		var workerBuffer = null;
 		var asyncExpecting = null;
@@ -20,27 +23,13 @@
 		// starts up.
 		var gameFileArrayBuffer = null;
 		
-		// Where output goes to (0 = main, 1 = status, other = suppress)
-		var outputStatus = 0;
-		
 		function handleTadsWorker(e)
 		{
 			switch (e.data.type)
 			{
 				case 'printz':
 				{
-					if (outputStatus == 0)
-					{
-						var transcript = document.querySelector('#transcript');
-						transcript.appendChild(document.createTextNode(e.data.str));
-						// Scroll to bottom
-						document.body.scrollTop = document.body.scrollHeight;
-					}
-					else if (outputStatus == 1)
-					{
-						var statusLine = document.querySelector('#status');
-						statusLine.appendChild(document.createTextNode(e.data.str));
-					}
+					tadsView.print(e.data.str);
 					wakeTadsWorker();
 					break;
 				}
@@ -75,23 +64,26 @@
 					}
 					break;
 				case 'start_html':
+					tadsView.startHtml();
 					wakeTadsWorker();
 					break;
 				case 'end_html':
+					tadsView.endHtml();
 					wakeTadsWorker();
 					break;
 				case 'more_prompt':
 					wakeTadsWorker();
 					break;
 				case 'plain':
+					tadsView.plain();
 					wakeTadsWorker();
 					break;
 				case 'status':
-					outputStatus = e.data.stat;
+					tadsView.setOutputStatus(e.data.stat);
 					wakeTadsWorker();
 					break;
 				case 'get_status':
-					(new Int32Array(workerBuffer.buffer))[0] = outputStatus;
+					(new Int32Array(workerBuffer.buffer))[0] = tadsView.outputStatus;
 					wakeTadsWorker();
 					break;
 				case 'score':
@@ -193,6 +185,7 @@
 		}
 		
 		window.onload = function() {
+			tadsView = new TadsView(document.querySelector('#transcript'), document.querySelector('#status'));
 			hookUi();
 			function gameFileLoaded(file)
 			{
