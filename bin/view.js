@@ -144,5 +144,5 @@ TadsView.prototype.showInputElement = function(el) {
 	// Figure out the position of the prompt, so we can size the width to
 	// fill the rest of the line.
 	var left = el.offsetLeft;
-	el.style.width = 'calc(100% - ' + left + 'px)';
+	el.style.width = 'calc(100% - ' + (left + 1) + 'px)';
 };
