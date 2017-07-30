@@ -130,8 +130,10 @@
 				{
 					window.asyncExpecting = null;
 					let val = promptForm.querySelector('input').value;
-					let transcript = document.querySelector('#transcript');
-					transcript.appendChild(document.createTextNode(val + '\n'));
+					// Echo the user input back to the screen since
+					// we will clear and reuse the input field where the
+					// player actually entered their input.
+					tadsView.appendUserInput(val);
 					promptForm.querySelector('input').value = '';
 					let utf8Text = new TextEncoder().encode(val);
 					for (let n = 0; n < utf8Text.length; n++)
@@ -220,9 +222,9 @@
 		<div id="status" style="flex-grow: 0;">
 		</div>
 		<div id="main" style="flex-grow: 1; overflow: auto;"> 
-			<div id="transcript" style="white-space: pre-wrap; padding-bottom: 2rem;">
+			<div id="transcript" style="padding-bottom: 2rem;">
 				<input style="display: none;" type="file" accept=".gam" id="hiddenFileLoader">
-				<div style="text-align: center; white-space: normal;">
+				<div style="text-align: center; white-space: normal; padding-top: 3em;">
 					<a href="javascript:void(0)" id="openGamLink">Open GAM file</a>
 				</div>
 			</div>

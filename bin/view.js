@@ -7,6 +7,9 @@ function TadsView(transcriptElement, statusLineElement)
 	this.statusLine = statusLineElement;
 	this.isHtmlMode = false;
 	this.bufferedOutput = "";
+	// We need a special div for formatting raw non-html text
+	this.plainTranscriptDiv = null;  
+	this.plainStatusLineDiv = null;  
 }
 
 TadsView.prototype.stringHtmlToDocumentFragment = function(str) {
@@ -25,32 +28,55 @@ TadsView.prototype.setOutputStatus = function(out) {
 		this.forceBufferedOutputFlush();
 		// Clear the status line before we start writing to it.
 		if (out == 1)
+		{
 			this.statusLine.innerHTML = '';  
+			this.plainStatusLineDiv = null;
+		}
 	}
 	this.outputStatus = out;
 };
 
+TadsView.prototype.switchToHtmlMode = function() {
+	this.forceBufferedOutputFlush();
+	this.plainTranscriptDiv = null;
+	this.plainStatusLineDiv = null;
+};
+
+TadsView.prototype.switchToPlainMode = function() {
+	this.forceBufferedOutputFlush();
+	this.plainTranscriptDiv = null;
+	this.plainStatusLineDiv = null;
+};
+
+
 TadsView.prototype.startHtml = function() {
 	if (!this.isHtmlMode)
-		this.forceBufferedOutputFlush();
+		this.switchToHtmlMode();
 	this.isHtmlMode = true;
 };
 
 TadsView.prototype.endHtml = function() {
 	if (this.isHtmlMode)
-		this.forceBufferedOutputFlush();
+		this.switchToPlainMode();
 	this.isHtmlMode = false;
 };
 
 TadsView.prototype.plain = function() {
 	if (this.isHtmlMode)
-		this.forceBufferedOutputFlush();
+		this.switchToPlainMode();
 	this.isHtmlMode = false;
 };
 
 TadsView.prototype.print = function(str) {
 	this.bufferedOutput = this.bufferedOutput + str;
 };
+
+TadsView.prototype.appendUserInput = function(val) {
+	if (this.isHtmlMode)
+		this.print(val + '<br>');
+	else
+		this.print(val + '\n');
+}
 
 TadsView.prototype.forceBufferedOutputFlush = function() {
 	var str = this.bufferedOutput;
@@ -62,7 +88,15 @@ TadsView.prototype.forceBufferedOutputFlush = function() {
 			this.transcript.appendChild(this.stringHtmlToDocumentFragment(str));
 		}
 		else
-			this.transcript.appendChild(document.createTextNode(str));
+		{
+			if (this.plainTranscriptDiv == null)
+			{
+				this.plainTranscriptDiv = document.createElement('div');
+				this.plainTranscriptDiv.style.whiteSpace = 'pre-wrap';
+				this.transcript.appendChild(this.plainTranscriptDiv);
+			}
+			this.plainTranscriptDiv.appendChild(document.createTextNode(str));
+		}
 		// Scroll to bottom
 		//document.body.scrollTop = document.body.scrollHeight;
 	}
@@ -73,7 +107,9 @@ TadsView.prototype.forceBufferedOutputFlush = function() {
 			this.statusLine.appendChild(this.stringHtmlToDocumentFragment(str));
 		}
 		else
+		{
 			this.statusLine.appendChild(document.createTextNode(str));
+		}
 	}
 }
 
