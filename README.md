@@ -1,12 +1,15 @@
 # TADS2-html5
 A very rough proof-of-concept port of the [TADS 2](http://tads.org/) interpreter for HTML5. It recompiles the TADS2 interpreter code into JavaScript using Emscripten
 
-To run it, download the code, then visit the `index.html` file in the `bin` directory in a browser. The code requires newer JavaScript features that are available in the most recent browsers or will be available soon.
+To run it, download the code, then visit the `index.html` file in the `bin` directory in a browser. Due to browser security restrictions, you must run the code from a web server. If you just try to view the `index.html` file on disk, it will [not work](#running-from-disk). The code requires newer JavaScript features that are available in the most recent browsers or will be available soon.
 
 The features it needs is support for shared array buffers and synchronization primitives. These features are already available in Safari and Chrome v60. It is expected to be available in Firefox by the end of August 2017, and in Edge for the Fall 2017 update release.
 
 ## Automatically Starting a Game
 If you are embedding the interpreter on a website and want it to automatically start a game when it loads up, simply supply the name of the game file as a hash in the URL, like `index.html#!file=game.gam` to automatically start the game file `game.gam`.
+
+## Running from Disk
+Although it is not recommended, you can disable the security restrictions in your browser to let you run the `index.html` interpreter in your browser from disk instead of needing to host in on a web page. To do so in Chrome, you must start Chrome with the `--allow-file-access-from-files` command-line option. To do so in Safari, you must go into the Safari menu...Preferences...Advanced (tab)...Show Develop menu. Then you go to the Develop menu...Disable Local File Restrictions.
 
 ## Technical Details
 Since the TADS interpreter often blocks while waiting for input, it doesn't work well with the JavaScript event-driven model. I looked into JavaScript's support for generators and await/async, but they seemed to be too messy to be usable with code ported with Emscripten. I tried Emscripten's Emterpreter and Asyncify modes, but I encountered problems that I couldn't figure out. In the end, I went with using features from the new shared array buffer specification, which contains support for blocking synchronization primitives for non-UI threads. 
