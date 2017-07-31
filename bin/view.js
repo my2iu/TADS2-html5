@@ -400,7 +400,7 @@ TadsView.prototype.forceBufferedOutputFlush = function() {
 			{
 				this.plainStatusLineDiv = document.createElement('div');
 				this.plainStatusLineDiv.style.whiteSpace = 'pre-wrap';
-				this.transcript.appendChild(this.plainStatusLineDiv);
+				this.statusLine.appendChild(this.plainStatusLineDiv);
 			}
 			this.plainStatusLineDiv.appendChild(document.createTextNode(str));
 		}
