@@ -1,9 +1,12 @@
 # TADS2-html5
 A very rough proof-of-concept port of the [TADS 2](http://tads.org/) interpreter for HTML5. It recompiles the TADS2 interpreter code into JavaScript using Emscripten
 
-To run it, download the code, then visit the `index.html` file in the `bin` directory in a browser. Due to browser security restrictions, you must run the code from a web server. If you just try to view the `index.html` file on disk, it will [not work](#running-from-disk). The code requires newer JavaScript features that are available in the most recent browsers or will be available soon.
+To run it, download the code, then visit the `index.html` file in the `bin` directory in a browser. Due to browser security restrictions, you must run the code from a web server. If you just try to view the `index.html` file on disk, it will [not work](#running-from-disk). If you do not have the ability to host the code on your own server, just ask around on IF forums, and I'm sure you can find someone who will host it for you.
 
-The features it needs is support for shared array buffers and synchronization primitives. These features are already available in Safari and Chrome v60. It is expected to be available in Firefox by the end of August 2017, and in Edge for the Fall 2017 update release.
+The code requires newer JavaScript features that are available in the most recent browsers or will be available soon. The features it needs is support for shared array buffers and synchronization primitives. These features are already available in Safari and Chrome v60. It is expected to be available in Firefox by the end of August 2017, and in Edge for the Fall 2017 update release.
+
+## What Works?
+This is more of a proof of concept, so it's not particularly polished or fully featured. It is useful for the preservation of older TADS 2 games and to serve as an architectural guide for creating similar interpreters. The code has very rudimentary support for HTMLTADS, allowing for simple formatting and the showing of images (even those embedded in .GAM files). Full HTMLTADS support requires the writing of a late-1990s, early 2000s era browser engine, so having full fidelity HTMLTADS output is unlikely. Game loading and saving has also not been implemented.
 
 ## Automatically Starting a Game
 If you are embedding the interpreter on a website and want it to automatically start a game when it loads up, simply supply the name of the game file as a hash in the URL, like `index.html#!file=game.gam` to automatically start the game file `game.gam`.
