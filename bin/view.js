@@ -193,6 +193,23 @@ HtmlLexer.prototype.lowercaseTagAttributes = function(attribs) {
 	return lowerAttribs;
 };
 
+HtmlLexer.prototype.reconstructOpeningTag = function(name, attribs) {
+	var tag = '<';
+	tag += name;
+	for (var key in attribs)
+	{
+		var val = attribs[key];
+		// Decide whether to wrap in single or double quotes
+		// (assume that one of them is safe)
+		if (val.indexOf('"') != -1)
+			tag += ' ' + key + "='" + val + "'";
+		else
+			tag += ' ' + key + '="' + val + '"';
+	}
+	tag += '>';
+	return tag;
+};
+
 // Code for managing the view (i.e. text output etc)
 function TadsView(transcriptElement, statusLineElement)
 {
@@ -203,7 +220,15 @@ function TadsView(transcriptElement, statusLineElement)
 	this.bufferedOutput = "";
 	// We need a special div for formatting raw non-html text
 	this.plainTranscriptDiv = null;  
-	this.plainStatusLineDiv = null;  
+	this.plainStatusLineDiv = null; 
+	this.resources = {};
+}
+
+// Makes the tads viewer aware of some resources that have 
+// already been loaded locally into memory.
+TadsView.prototype.addResources = function(newResourceEntries) {
+	for (key in newResourceEntries)
+		this.resources[key] = newResourceEntries[key];
 }
 
 TadsView.prototype.stringHtmlToDocumentFragment = function(str) {
@@ -298,6 +323,29 @@ TadsView.prototype.parseHtmlInto = function(str, element)
 					next = '&nbsp;'.repeat(numTabs);
 				}
 			}
+			else if (tagName == 'img')
+			{
+				// If we already have a copy of the image stored locally
+				// (probably because it was in the GAM file), then substitute that
+				// in the for image.
+				if (tagAttribs['src'] && this.resources[tagAttribs['src']])
+				{
+					var name = tagAttribs['src'];
+					var type = 'application/x-octet-stream';
+					var lowername = name.toLowerCase();
+					if (lowername.endsWith('.png'))
+						type = 'image/png';
+					else if (lowername.endsWith('.jpg') || lowername.endsWith('.jpeg'))
+						type = 'image/jpeg';
+					else if (lowername.endsWith('.gif'))
+						type = 'image/gif';
+					else if (lowername.endsWith('.svg'))
+						type = 'image/svg+xml';
+					var blob = new Blob()
+					tagAttribs['src'] = URL.createObjectURL(new Blob([this.resources[name]], {type: type}));
+					next = lexer.reconstructOpeningTag(tagName, tagAttribs);
+				}
+			}
 		}
 		processedHtml += next;
 		
@@ -390,3 +438,80 @@ TadsView.prototype.showInputElement = function(el) {
 	var left = el.offsetLeft;
 	el.style.width = 'calc(100% - ' + (left + 1) + 'px)';
 };
+
+// Some functions for extracting resources out of TADS2 .gam files
+
+// Given an array buffer of an entire gam file, this function will
+// find all the resources stored inside
+function readGamIndex(buf)
+{
+	var data = new DataView(buf);
+	var resourceEntries = null;
+	
+	// Check that the file starts with "TADS2" indicating that it
+	// is one of the various TADS 2 files.
+	for (var n = 0; n < 6; n++)
+	{
+		if (data.getInt8(n) != 'TADS2 '.charCodeAt(n))
+			return null;
+	}
+
+	// Skip over the version number and timestamp to the start of
+	// the section list
+	var pos = 3 * 16;
+	while (true) {
+		var typeLength = data.getUint8(pos);
+		pos++;
+		// TODO: TextDecoder() isn't available on all systems. Possibly switch to
+		// using a file reader on a blob for this?
+		var type = new TextDecoder().decode(new Uint8Array(buf, pos, typeLength))
+		pos += typeLength;
+		var nextPos = data.getInt32(pos, true);
+		pos += 4;
+		var length = nextPos - pos;
+		
+		// We've found the HTMLRES section of the file that contains
+		// extra resources. Send that out for further processing.
+		//console.log(type + " " + length);
+		if (type == 'HTMLRES')
+			resourceEntries = readGamFileHtmlRes(buf.slice(pos, pos + length));
+		
+		// Reached invalid file information or end of file marker
+		if (nextPos <= pos || type == "$EOF")
+			break;
+		
+		// Move to the next entry
+		pos = nextPos;
+	}
+	
+	return resourceEntries;
+}
+
+function readGamFileHtmlRes(buf)
+{
+	var resourceEntries = {};
+	
+	var data = new DataView(buf);
+	var numEntries = data.getInt32(0, true);
+	var tableSize = data.getInt32(4, true);
+	
+	var pos = 8;
+	for (var n = 0; n < numEntries; n++)
+	{
+		var offset = data.getInt32(pos, true);
+		var size = data.getInt32(pos + 4, true);
+		var nameLength = data.getInt16(pos + 8, true);
+		// TODO: TextDecoder() isn't available on all systems. Possibly switch to
+		// using a file reader on a blob for this?
+		var name = new TextDecoder().decode(new Uint8Array(buf, pos + 10, nameLength))
+		
+		// Store the resource in the map by name 
+		resourceEntries[name] = buf.slice(tableSize + offset, tableSize + offset + size);
+		
+		// Move on to the next entry
+		pos += 10 + nameLength;
+	}
+	
+	// assert (pos == tableSize)
+	return resourceEntries;
+}

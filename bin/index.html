@@ -217,6 +217,8 @@
 				document.querySelector('#transcript').innerHTML = '';
 				gameFileArrayBuffer = file;
 				startTadsWebWorker();
+				var resourceEntries = readGamIndex(gameFileArrayBuffer);
+				tadsView.addResources(resourceEntries);
 			}
 			var gameUrl = null;
 			// Check the has to see if we've been passed parameters to
