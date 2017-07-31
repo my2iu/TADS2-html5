@@ -166,7 +166,9 @@ HtmlLexer.prototype.parseTagAttributes = function(tagText) {
 		}
 		else
 		{
-			while (!this.isWhitespaceChar(ch) && ch != '/' && ch != '>')
+			// Note: The slash (/) will be added to the value. Only the > or whitespace can 
+			// end the value (in other cases, the / signals a self-closing tag)
+			while (!this.isWhitespaceChar(ch) && ch != '>')
 			{
 				attribValue += ch;
 				idx++;
