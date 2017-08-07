@@ -7,6 +7,7 @@
 		var userInputField;
 	
 		var lock;
+		var tadsWorker; 
 		var workerBuffer = null;
 		var asyncExpecting = null;
 		function wakeTadsWorker()
@@ -105,12 +106,16 @@
 					break;
 			}
 		}
-		
+		function prestartTadsWebWorker()
+		{
+			// The web worker is a few MB, so it might be slow to
+			// download initially, so we want to start it loading
+			// as soon as possible.
+			tadsWorker = new Worker('tadsworker.js');
+			tadsWorker.onmessage = handleTadsWorker;
+		}
 		function startTadsWebWorker()
 		{
-			var tadsWorker = new Worker('tadsworker.js');
-			tadsWorker.onmessage = handleTadsWorker;
-			
 			// Create a shared buffer that can be used for synchronization
 			var sharedArray = new SharedArrayBuffer(8);
 			lock = new Int32Array(sharedArray);
@@ -206,6 +211,7 @@
 		}
 		
 		window.onload = function() {
+			prestartTadsWebWorker();
 			tadsView = new TadsView(document.querySelector('#transcript'), document.querySelector('#status'));
 			hookUi();
 			function gameFileLoaded(file)
