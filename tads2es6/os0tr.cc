@@ -379,9 +379,12 @@ void os_strsc(const char *p)
 // File stuff (some stuff taken from osunixt.h)
 
 extern int js_openfile(const char *fname);
+extern int js_openTempFileForWriting(const char *fname);
 extern long js_ftell(int id);
 extern int js_fread(void * ptr, int elSize, int numEl, int id);
+extern int js_fwrite(void * ptr, int elSize, int numEl, int id);
 extern void js_fclose(int id);
+extern void js_ftransferToMainThread(int id);
 extern int js_fseek(int id, long offset, int mode);
 
 
@@ -390,6 +393,7 @@ struct EsFileProxy
 	bool isPosixFile;  // POSIX file or ES6 in-memory file
 	int inMemoryId;    // If using in-memory file, this is the file id to access it
 	FILE *fptr;
+	bool transferWhenClosed;  // Transfer contents of file to main thread when it is closed (i.e. when writing to it is finished)
 };
 
 static osfildef* wrapFile(FILE *fptr)
@@ -429,6 +433,19 @@ osfildef *osfoprwtt(char *fname, int typ)
 /* open binary file for writing; returns NULL on error */
 osfildef *osfopwb(char *fname, int typ)
 {
+	if (typ == OSFTSAVE && strcmp(fname, "?save1.sav") == 0)
+	{
+		// Special handling of saving a game
+		int id = js_openTempFileForWriting(fname);
+		if (id < 0)
+			return NULL;
+		EsFileProxy *fileProxy = new EsFileProxy();
+		fileProxy->isPosixFile = false;
+		fileProxy->fptr = 0;
+		fileProxy->inMemoryId = id;
+		fileProxy->transferWhenClosed = true;
+		return fileProxy;
+	}
 	fprintf(stderr, "osfopwb: %s\n", fname);
 	return wrapFile(fopen(fname, "wb"));
 }
@@ -451,6 +468,7 @@ osfildef *osfoprb(char *fname, int typ)
 	fileProxy->isPosixFile = false;
 	fileProxy->fptr = 0;
 	fileProxy->inMemoryId = id;
+	fileProxy->transferWhenClosed = false;
 	return fileProxy;
 }
 
@@ -474,8 +492,11 @@ osfildef *osfoprwtb(const char *fname, int typ)
 /* write bytes to file; TRUE ==> error */
 int osfwb(osfildef *fp, uchar *buf, int bufl)
 {
+	if (fp->isPosixFile)
+		return (fwrite(buf, bufl, 1, fp->fptr) != 1);
+	else
+		return (js_fwrite(buf, bufl, 1, fp->inMemoryId) != 1);
 	fprintf(stderr, "osfwb\n");
-	return (fwrite(buf, bufl, 1, fp->fptr) != 1);
 }
 
 /* read bytes from file; TRUE ==> error */
@@ -525,7 +546,12 @@ void osfcls(osfildef *fp)
 	if (fp->isPosixFile)
 		fclose(fp->fptr);
 	else
+	{
+		if (fp->transferWhenClosed)
+			js_ftransferToMainThread(fp->inMemoryId);
 		js_fclose(fp->inMemoryId);
+	
+	}
 	delete fp;
 }
 

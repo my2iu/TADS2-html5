@@ -14,12 +14,25 @@ function callAndWait(fn)
 	Atomics.wait(tadsWorkerLock, 0, val);
 }
 
-function EsInMemoryFile(fileContents) 
+function EsInMemoryFile(filename, fileContents) 
 {
+	this.filename = filename;
 	this.fileContents = fileContents;
+	this.size = fileContents.length;
 }
 EsInMemoryFile.prototype.pos = 0;
 EsInMemoryFile.prototype.fileContents = null;
+EsInMemoryFile.prototype.size = 0;
+EsInMemoryFile.prototype.filename = '';
+EsInMemoryFile.prototype.growBuffer = function(size) {
+	if (size < this.fileContents.length) return;
+	var newSize = Math.max(8, this.fileContents.length);
+	while (newSize < size) newSize *= 2;
+	var newFileContents = new Uint8Array(newSize);
+	for (var n = 0; n < this.fileContents.length; n++)
+		newFileContents[n] = this.fileContents[n];
+	this.fileContents = newFileContents;
+};
 EsInMemoryFile.nextFileId = 0;
 EsInMemoryFile.files = {};
 

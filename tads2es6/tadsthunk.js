@@ -57,7 +57,14 @@ mergeInto(LibraryManager.library, {
 		}
 		// Don't need to wait, this just tells the main thread to clean-up
 		postMessage({type: 'readfile', offset: -1});
-		EsInMemoryFile.files[fileId] = new EsInMemoryFile(fileContents);
+		EsInMemoryFile.files[fileId] = new EsInMemoryFile(str, fileContents);
+		return fileId;
+	},
+	js_openTempFileForWriting: function(s) {
+		var name = UTF8ToString(s);
+		var fileId = self.EsInMemoryFile.nextFileId;
+		self.EsInMemoryFile.nextFileId++;
+		EsInMemoryFile.files[fileId] = new EsInMemoryFile(name, new Uint8Array(0));
 		return fileId;
 	},
 	js_ftell: function(fileId) {
@@ -70,10 +77,27 @@ mergeInto(LibraryManager.library, {
 		{
 			for (var b = 0; b < elSize; b++)
 			{
-				if (file.pos >= file.fileContents.length)
+				if (file.pos >= file.size)
 					return el;
 				setValue(ptr + (el * elSize) + b, file.fileContents[file.pos], 'i8');
 				file.pos++;
+			}
+		}
+		return el;
+	},
+	js_fwrite : function(ptr, elSize, numEl, fileId) {
+		var file = EsInMemoryFile.files[fileId];
+		var el;
+		for (el = 0; el < numEl; el++)
+		{
+			for (var b = 0; b < elSize; b++)
+			{
+				file.growBuffer(file.pos + 1);
+				var val = getValue(ptr + (el * elSize) + b, 'i8');
+				file.fileContents[file.pos] = val;
+				file.pos++;
+				if (file.pos > file.size)
+					file.size = file.pos;
 			}
 		}
 		return el;
@@ -87,6 +111,12 @@ mergeInto(LibraryManager.library, {
 		else
 			file.pos = file.pos + offset;
 		return 0;
+	},
+	js_ftransferToMainThread : function(fileId) {
+		var file = EsInMemoryFile.files[fileId];
+		callAndWait(function() {
+			postMessage({type: 'transferfile', name: file.filename, contents: file.fileContents.buffer.slice(0, file.size)});
+		});
 	},
 	js_fclose : function(fileId) {
 		delete EsInMemoryFile.files[fileId];

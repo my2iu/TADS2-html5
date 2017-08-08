@@ -58,6 +58,7 @@
 					// We'll only handle a few restricted cases for now
 					if (promptType == 1 && fileType == 1)
 					{
+						// Restoring a saved game
 						asyncExpecting = 'askfile';
 						launchFileChooserWrapper(prompt, '.sav', function(file) {
 							if (file == null) {
@@ -86,6 +87,13 @@
 							
 							reader.readAsArrayBuffer(file);
 						});
+					}
+					else if (promptType == 2 && fileType == 1) 
+					{
+						// Saving a game
+						var fname = '?save1.sav';
+						writeStringZToWorkerBuffer(fname, workerBuffer, 0);
+						wakeTadsWorker();
 					}
 					else
 					{
@@ -125,6 +133,21 @@
 						wakeTadsWorker();
 					}
 					break;
+				case 'transferfile':
+					if (e.data.name == '?save1.sav') 
+					{
+						var saveLink = document.createElement('a');
+						var blob = new Blob([e.data.contents], {type:'application/x-tads-save'});
+						saveLink.href = URL.createObjectURL(blob);
+						saveLink.download = 'tads2SaveGame.sav';
+						saveLink.click();
+					}
+					else
+					{
+						console.log("We've been asked to save a file, but we don't know why");
+					}
+					wakeTadsWorker();
+					break;
 				case 'start_html':
 					tadsView.startHtml();
 					wakeTadsWorker();
@@ -157,6 +180,8 @@
 					// postMessage({type: 'strsc', str: str});
 					wakeTadsWorker();
 					break;
+				default:
+					throw 'Unknown message from TADS';
 			}
 		}
 		function prestartTadsWebWorker()
