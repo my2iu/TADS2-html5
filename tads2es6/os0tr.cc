@@ -165,10 +165,14 @@ osfildef *os_exeseek(const char *argv0, const char *typ)
 	return 0;
 }
 
+extern int js_askfile(const char *prompt, char *fname_buf, int fname_len,
+	int prompt_type, int file_type);
+
 int os_askfile(const char *prompt, char *fname_buf, int fname_buf_len,
                int prompt_type, os_filetype_t file_type)
 {
-	printf("os_askfile\n");
+	if (js_askfile(prompt, fname_buf, fname_buf_len, prompt_type, file_type))
+		return OS_AFE_SUCCESS;
 	return OS_AFE_FAILURE;
 }
 

@@ -20,6 +20,21 @@ mergeInto(LibraryManager.library, {
 		});
 		return (new Int32Array(passbackBuffer.buffer))[0];
 	},
+	js_askfile: function(prompt, fname_buf, fname_len, prompt_type, file_type) {
+		var promptStr = UTF8ToString(prompt);
+		callAndWait(function() {
+			postMessage({type: 'askfile', prompt: promptStr, 
+				promptType: prompt_type, fileType: file_type});
+		});
+		for (var n = 0; n < Math.min(passbackBuffer.length, fname_len); n++)
+		{
+			setValue(fname_buf + n, passbackBuffer[n], 'i8');
+		}
+		if (passbackBuffer[0] == 0) return 0;
+		return 1;
+//		extern int js_askfile(const char *prompt, char *fname_buf, int fname_len,
+//		int prompt_type, int file_type);
+	},
 	js_openfile: function(s) {
 		var str = UTF8ToString(s);
 		var fileId = self.EsInMemoryFile.nextFileId;
