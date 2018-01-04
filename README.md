@@ -1,4 +1,7 @@
 # TADS2-html5
+
+*This project is currently on-hold because it requires browser support for the SharedArrayBuffer feature, but that feature was removed from all browsers at the start of 2018 [due to a](https://www.chromium.org/Home/chromium-security/ssca) [security](https://blogs.windows.com/msedgedev/2018/01/03/speculative-execution-mitigations-microsoft-edge-internet-explorer) [concern](https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/).*
+
 A very rough proof-of-concept port of the [TADS 2](http://tads.org/) interpreter for HTML5. It recompiles the TADS2 interpreter code into JavaScript using Emscripten. 
 
 If you just want to play games, I've uploaded a copy to [itch.io that you can use immediately](https://my2iu.itch.io/tads-2-interpreter). To run it yourself, download the code, then visit the `index.html` file in the `bin` directory in a browser. Due to browser security restrictions, you must run the code from a web server. If you just try to view the `index.html` file on disk, it will [not work](#running-from-disk). 
