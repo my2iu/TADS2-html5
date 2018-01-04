@@ -56,11 +56,18 @@
 					var promptType = e.data.promptType;
 					var fileType = e.data.fileType;
 					// We'll only handle a few restricted cases for now
-					if (promptType == 1 && fileType == 1)
+					if (promptType == 1)
 					{
 						// Restoring a saved game
 						asyncExpecting = 'askfile';
-						launchFileChooserWrapper(prompt, '.sav', function(file) {
+
+						var fileFilter = false;
+						// Filetype 1 = saved game
+						if (fileType == 1) {
+							fileFilter = ".sav";
+						}
+
+						launchFileChooserWrapper(prompt, fileFilter, function(file) {
 							if (file == null) {
 								asyncExpecting = null;
 								workerBuffer[0] = 0;
@@ -73,7 +80,7 @@
 								if (asyncExpecting != 'askfile') return;
 								asyncExpecting = null;
 								// Assign an arbitrary name to the opened file
-								var fname = '?restoreSave1.sav';
+								var fname = file.name;
 								openedFiles[fname] = reader.result;
 								writeStringZToWorkerBuffer(fname, workerBuffer, 0);
 								wakeTadsWorker();
@@ -88,7 +95,7 @@
 							reader.readAsArrayBuffer(file);
 						});
 					}
-					else if (promptType == 2 && fileType == 1) 
+					else if (promptType == 2) 
 					{
 						// Saving a game
 						var fname = '?save1.sav';
@@ -281,7 +288,11 @@
 		function launchFileChooser(onfile, extension)
 		{
 			var fileInput = document.querySelector('#hiddenFileLoader');
-			fileInput.accept = extension;
+			if (extension) {
+				fileInput.accept = extension;
+			} else {
+				fileInput.accept = undefined;
+			}
 			fileInput.onchange = function(e) {
 				if (fileInput.files.length == 0) 
 					onfile(null);
