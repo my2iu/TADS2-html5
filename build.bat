@@ -3,8 +3,8 @@ set TADSUNIXDIR=tadsunix\
 set TADSES6=tads2es6\
 rem set EMCC_AUTODEBUG=1
 rem set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -O2 
-set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP 
-set LDOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs
+set CCOPTS=-s ASSERTIONS=1 -s WASM=1 -s SAFE_HEAP=1 --profiling-funcs -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP 
+set LDOPTS=-s ASSERTIONS=1 -s WASM=1 -s MODULARIZE=1 -s SAFE_HEAP=1 --profiling-funcs -s "EXPORT_NAME='TadsLoader'" -g
 
 mkdir obj
 call emcc %TADSDIR%ler.c -I%TADSDIR% -I%TADSUNIXDIR%  -o obj\lib.o %CCOPTS%
@@ -20,4 +20,4 @@ call emcc %TADSDIR%bifgdum.c %TADSDIR%osgen3.c %TADSDIR%os0.c %TADSDIR%osnoui.c 
 call emcc obj\cmnrun.o obj\run.o obj\char.o -I%TADSUNIXDIR% -I%TADSDIR%  -o obj\tr.o  %CCOPTS%
 
 
-call emcc obj\tr.o -o bin\lib\tr.js -s EXPORTED_FUNCTIONS="['_tads_worker_main']" --js-library %TADSES6%\tadsthunk.js %LDOPTS%
+call emcc obj\tr.o -o bin\lib\tr.js --js-library %TADSES6%\tadsthunk.js %LDOPTS%

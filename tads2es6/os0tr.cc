@@ -179,7 +179,7 @@ int os_askfile(const char *prompt, char *fname_buf, int fname_buf_len,
 int trdmain(int argc, char *argv[], appctxdef *appctx, char *save_ext);
 
 
-int tads_worker_main()
+int EMSCRIPTEN_KEEPALIVE tads_worker_main()
 //int main()
 {
     int   argc = 2;
