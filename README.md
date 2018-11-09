@@ -1,6 +1,6 @@
 # TADS2-html5
 
-*This project is currently on-hold because it requires browser support for the SharedArrayBuffer feature, but that feature was removed from all browsers at the start of 2018 [due to a](https://www.chromium.org/Home/chromium-security/ssca) [security](https://blogs.windows.com/msedgedev/2018/01/03/speculative-execution-mitigations-microsoft-edge-internet-explorer) [concern](https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/).*
+*This project requires browser support for the SharedArrayBuffer feature. Unfortunately, that feature was removed from all browsers except for Google Chrome for Mac/Win/Linux [due to](https://www.chromium.org/Home/chromium-security/ssca) [security](https://blogs.windows.com/msedgedev/2018/01/03/speculative-execution-mitigations-microsoft-edge-internet-explorer) [concerns](https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/) that are currently only Google Chrome has resolved.*
 
 A very rough proof-of-concept port of the [TADS 2](http://tads.org/) interpreter for HTML5. It recompiles the TADS2 interpreter code into JavaScript using Emscripten. 
 
