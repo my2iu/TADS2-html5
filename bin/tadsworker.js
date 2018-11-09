@@ -66,7 +66,10 @@ function main()
 	else
 		runMainImmediately = true;
 
-	console.log('Exiting');
+	// Game has ended. Tell the main UI thread.
+	callAndWait(function() {
+		postMessage({type: 'end'});
+	});
 }
 
 var tadsWorkerLock;

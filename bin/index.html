@@ -49,6 +49,12 @@
 					userInputField.focus();
 					asyncExpecting = 'getc';
 					break;
+				case 'end':
+					// Interpreter has exited. Flush the output so final messages
+					// can be seen.
+					tadsView.outputFlushBeforeInput();
+					wakeTadsWorker();
+					break;
 				case 'askfile':
 				{
 					tadsView.outputFlushBeforeInput();
