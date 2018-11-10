@@ -26,22 +26,42 @@ Tue Nov 22 15:16:10 EST 1994    Dave Baggett    Updated for TADS 2.2.0.5
 
 //***********************************************************
 // NEW STUFF ADDED HERE
+#define OS_DECL_TLS(typ, varname)  __thread typ varname
 #include <stdint.h>
 typedef void * osdirhdl_t;
-int osrp2(unsigned char *p);
-unsigned long osrp4(unsigned char *p);
-long osrp4s(unsigned char *p);
-void oswp4s(unsigned char *p, long l);
+int osrp2_unsignedchar(const unsigned char *p);
+#define osrp2(p) osrp2_unsignedchar((const unsigned char *)(p))
+ int osrp2s_unsignedchar(unsigned char *p);
+ #define osrp2s(p) osrp2s_unsignedchar((unsigned char *)(p))
+//int osrp2(const unsigned char *p);
+#define oswp2s(p,i) oswp2(p,i)
+unsigned long osrp4_unsignedchar(const unsigned char *p);
+#define osrp4(p) osrp4_unsignedchar((const unsigned char *)(p))
+long osrp4s_unsignedchar(const unsigned char *p);
+#define osrp4s(p) osrp4s_unsignedchar((const unsigned char *)(p))
+void oswp4s_unsignedchar(const unsigned char *p, long l);
+#define oswp4s(p, l) oswp4s_unsignedchar((const unsigned char *)(p), l)
 
-
+#define OS_NEWLINE_SEQ "\n"
 #define memicmp strncasecmp
 #define OS_SYSTEM_NAME "EmscriptenUnix"
-#define osfflush(fp) fflush(fp)
 #define os_vasprintf vasprintf
 
 #define ES6_FILE_BYPASS
 
 #if defined(ES6_FILE_BYPASS)
+#define OSFMODE_FILE   0x0001
+#define OSFMODE_DIR    0x0002
+#define OSFMODE_CHAR   0x0004
+#define OSFMODE_BLK    0x0008
+#define OSFMODE_PIPE   0x0010
+#define OSFMODE_SOCKET 0x0020
+#define OSFMODE_LINK   0x0040
+#define OSFATTR_HIDDEN   0x0001 
+#define OSFATTR_SYSTEM   0x0002 
+#define OSFATTR_READ     0x0004 
+#define OSFATTR_WRITE    0x0008 
+#define OSPATHPWD "."
 #ifndef OS_UCHAR_DEFINED
 typedef unsigned char  uchar;
 #define OS_UCHAR_DEFINED
@@ -53,34 +73,43 @@ typedef struct EsFileProxy osfildef;
 #define OSFSK_SET  SEEK_SET
 #define OSFSK_CUR  SEEK_CUR
 #define OSFSK_END  SEEK_END
+#define OSFOPRB 0
+
+int osfflush(osfildef *fp);
+/* just stubbed out for now */
+int osfmode(const char *fname, int follow_links,
+            unsigned long *mode, unsigned long *attrs);
 /* open text file for reading; returns NULL on error */
 osfildef *osfoprt(char *fname, int typ);
 /* open text file for writing; returns NULL on error */
-osfildef *osfopwt(char *fname, int typ);
+osfildef *osfopwt(const char *fname, int typ);
 /* open text file for reading/writing; don't truncate */
 // no es6 definition
 osfildef *osfoprwt(const char *fname, os_filetype_t typ);
 /* open text file for reading/writing; truncate; returns NULL on error */
 osfildef *osfoprwtt(char *fname, int typ);
 /* open binary file for writing; returns NULL on error */
-osfildef *osfopwb(char *fname, int typ);
+osfildef *osfopwb(const char *fname, int typ);
 /* open source file for reading */
 osfildef *osfoprs(char *fname, int typ);
 /* open binary file for reading; returns NULL on erorr */
-osfildef *osfoprb(char *fname, int typ);
+osfildef *osfoprb(const char *fname, int typ);
 /* get a line of text from a text file (fgets semantics) */
 char *osfgets(char *buf, size_t len, osfildef *fp);
 /* open binary file for reading/writing; don't truncate */
 // no es6 definition
 osfildef *osfoprwtb(const char *fname, os_filetype_t typ); 
 /* open binary file for reading/writing; truncate; returns NULL on error */
-osfildef *osfoprwb(char *fname, int typ);
+osfildef *osfoprwb(const char *fname, int typ);
 /* write bytes to file; TRUE ==> error */
-int osfwb(osfildef *fp, uchar *buf, int bufl);
+int osfwb_uchar(osfildef *fp, uchar *buf, int bufl);
+#define osfwb(fp, buf, bufl) osfwb_uchar(fp, (uchar *)(buf), bufl) 
 /* read bytes from file; TRUE ==> error */
-int osfrb(osfildef *fp, uchar *buf, int bufl);
+int osfrb_uchar(osfildef *fp, uchar *buf, int bufl);
+#define osfrb(fp, buf, bufl) osfrb_uchar(fp, (uchar *)(buf), bufl)
 /* read bytes from file and return count; returns # bytes read, 0=error */
-size_t osfrbc(osfildef *fp, uchar *buf, size_t bufl);
+size_t osfrbc_uchar(osfildef *fp, uchar *buf, size_t bufl);
+#define osfrbc(fp, buf, bufl) osfrbc_uchar(fp, (uchar *)(buf), bufl)
 /* get position in file */
 long osfpos(osfildef *fp);
 /* seek position in file; TRUE ==> error */
@@ -88,13 +117,15 @@ int osfseek(osfildef *fp, long pos, int mode);
 /* close a file */
 void osfcls(osfildef *fp);
 /* delete a file - TRUE if error */
-int osfdel(char *fname);
+int osfdel(const char *fname);
 /* access a file - 0 if file exists */
-int osfacc(char *fname);
+int osfacc(const char *fname);
 /* get a character from a file */
 int osfgetc(osfildef *fp);
 /* write a string to a file */
 int osfputs(char *buf, osfildef *fp);
+int os_rename_file(const char *oldname, const char *newname);
+
 #endif
 
 // comment out the lines for defining our_memcpy and for redefining memcpy and memmove from this file
@@ -203,7 +234,7 @@ int osfputs(char *buf, osfildef *fp);
 #  define osfar_t
 
 /* maximum theoretical size of malloc argument */
-#  define OSMALMAX ((size_t)0xffffffff)
+#  define OSMALMAX (0xffffffffL)
 
 /* cast an expression to void */
 #  define DISCARD (void)

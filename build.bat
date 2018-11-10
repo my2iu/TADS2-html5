@@ -15,7 +15,7 @@ call emcc %TADSDIR%dat.c %TADSDIR%lst.c %TADSDIR%run.c %TADSDIR%out.c %TADSDIR%v
 
 call emcc %TADSDIR%vocab.c %TADSDIR%execmd.c %TADSDIR%ply.c %TADSDIR%qas.c %TADSDIR%trd.c %TADSDIR%dbgtr.c %TADSDIR%linfdum.c %TADSDIR%osrestad.c -I%TADSUNIXDIR% -I%TADSDIR% -o obj\run.o %CCOPTS%
 
-call emcc %TADSDIR%bifgdum.c %TADSDIR%osgen3.c %TADSDIR%os0.c %TADSDIR%osnoui.c %TADSDIR%oem.c %TADSDIR%argize.c %TADSES6%os0tr.cc -DUSE_DOSEXT -DUSE_GENRAND -I%TADSUNIXDIR% -I%TADSDIR%  -o obj\char.o %CCOPTS%
+call emcc %TADSDIR%bifgdum.c %TADSDIR%osgen3.c %TADSDIR%os0.c %TADSDIR%osnoui.c %TADSDIR%oem.c %TADSDIR%argize.c %TADSES6%oses6.cc %TADSES6%os0tr.cc -DUSE_DOSEXT -DUSE_GENRAND -I%TADSUNIXDIR% -I%TADSDIR%  -o obj\char.o %CCOPTS%
 
 call emcc obj\cmnrun.o obj\run.o obj\char.o -I%TADSUNIXDIR% -I%TADSDIR%  -o obj\tr.o  %CCOPTS%
 

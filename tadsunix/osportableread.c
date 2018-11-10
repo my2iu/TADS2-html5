@@ -53,30 +53,30 @@
 #include "osunixt.h"
 
 
-long osrp4s(unsigned char *p)
+long osrp4s_unsignedchar(const unsigned char *p)
 {
  long val= ((long)osc2l(p, 0) + ((long)osc2l(p, 1) << 8) + ((long)osc2l(p, 2) << 16) + ((long)(char)osc2l(p, 3) << 24));
  return val;
 }
- void oswp4s(unsigned char *p, long l)
+ void oswp4s_unsignedchar(const unsigned char *p, long l)
  {
 	oswp4(p,l);
  }
  
-int osrp2(unsigned char *p)
+int osrp2_unsignedchar(const unsigned char *p)
 {
 	int val = (osc2u(p, 0) + (osc2u(p, 1) << 8));
 	return val;
 }
 
- int osrp2s(unsigned char *p)
+ int osrp2s_unsignedchar(unsigned char *p)
  {
     int val = (((int)(short)osc2u(p, 0)) + ((int)(short)(osc2u(p, 1) << 8)));
 	return val;
 
  }
  
-  unsigned long osrp4(unsigned char *p)
+  unsigned long osrp4_unsignedchar(const unsigned char *p)
   {
   unsigned long val = (osc2l(p, 0) + (osc2l(p, 1) << 8) + (osc2l(p, 2) << 16) + (osc2l(p, 3) << 24));
   return val;
