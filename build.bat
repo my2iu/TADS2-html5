@@ -3,8 +3,8 @@ set TADSUNIXDIR=tadsunix\
 set TADSES6=tads2es6\
 rem set EMCC_AUTODEBUG=1
 rem set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -O2 
-set CCOPTS=-s ASSERTIONS=1 -s WASM=1 -s SAFE_HEAP=1 --profiling-funcs -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP 
-set LDOPTS=-s ASSERTIONS=1 -s WASM=1 -s MODULARIZE=1 -s SAFE_HEAP=1 --profiling-funcs -s "EXPORT_NAME='TadsLoader'" -g
+set CCOPTS=-s ASSERTIONS=1 -s WASM=1 --profiling-funcs -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP -O2 
+set LDOPTS=-s ASSERTIONS=1 -s WASM=1 -s MODULARIZE=1 --profiling-funcs -s "EXPORT_NAME='TadsLoader'" -O2
 
 mkdir obj
 call emcc %TADSDIR%ler.c -I%TADSDIR% -I%TADSUNIXDIR%  -o obj\lib.o %CCOPTS%
