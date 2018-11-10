@@ -1,7 +1,5 @@
 var runMainImmediately = false;  // Start the TADS WASM code as soon as it is ready (all other configuration from the main UI thread has already been done)
 var emscriptenReady = false;
-  
-importScripts('lib/tr.js');
 
 function callAndWait(fn)
 {
@@ -35,29 +33,33 @@ EsInMemoryFile.prototype.growBuffer = function(size) {
 EsInMemoryFile.nextFileId = 0;
 EsInMemoryFile.files = {};
 
-// Start loading the WASM code (Use our own loader that isn't subject
-// to restrictions requiring developers to start their own web server 
-// for testing)
+//Start loading the WASM code (Use our own loader that isn't subject
+//to restrictions requiring developers to start their own web server 
+//for testing)
 var Tads = null;
-var xmlhttp = new XMLHttpRequest();
-xmlhttp.addEventListener("load", function(e) {
-	// We've downloaded the WASM code, so go compile it and start it running.
-	var Module = {
-		wasmBinary: xmlhttp.response
-	}
-	xmlhttp = null;
-	TadsLoader(Module).then(function(loaded) {
-		Tads = loaded;
-		emscriptenReady = true;
-		if (runMainImmediately)
-			Tads._tads_worker_main();
+function startLoadWasm(wasmFile)
+{
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.addEventListener("load", function(e) {
+		// We've downloaded the WASM code, so go compile it and start it running.
+		var Module = {
+			wasmBinary: xmlhttp.response
+		}
+		xmlhttp = null;
+		TadsLoader(Module).then(function(loaded) {
+			Tads = loaded;
+			emscriptenReady = true;
+			if (runMainImmediately)
+				Tads._tads_worker_main();
+		});
 	});
-});
-xmlhttp.responseType = 'arraybuffer';
-xmlhttp.open("GET", "lib/tr.wasm");
-xmlhttp.send();
+	xmlhttp.responseType = 'arraybuffer';
+	xmlhttp.open("GET", wasmFile);
+	xmlhttp.send();
+}
 
-// Gets the TADS interpreter to start when it is ready
+
+//Gets the TADS interpreter to start when it is ready
 function main()
 {
 	// Call into the TADS interpreter
