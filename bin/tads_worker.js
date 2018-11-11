@@ -1,4 +1,5 @@
 var runMainImmediately = false;  // Start the TADS WASM code as soon as it is ready (all other configuration from the main UI thread has already been done)
+var runWithRestore = false;      // Start TADS so that it restore a save game immediately on startup
 var emscriptenReady = false;
 
 function callAndWait(fn)
@@ -50,7 +51,12 @@ function startLoadWasm(wasmFile)
 			Tads = loaded;
 			emscriptenReady = true;
 			if (runMainImmediately)
-				Tads._tads_worker_main();
+			{
+				if (runWithRestore)
+					Tads._tads_worker_main_with_restore();
+				else
+					Tads._tads_worker_main();
+			}
 		});
 	});
 	xmlhttp.responseType = 'arraybuffer';
@@ -64,7 +70,12 @@ function main()
 {
 	// Call into the TADS interpreter
 	if (emscriptenReady)
-		Tads._tads_worker_main();
+	{
+		if (runWithRestore)
+			Tads._tads_worker_main_with_restore();
+		else
+			Tads._tads_worker_main();
+	}
 	else
 		runMainImmediately = true;
 
@@ -93,6 +104,11 @@ addEventListener('message', function(evt) {
 			break;
 
 		case 'start':
+			main();
+			break;
+			
+		case 'start_with_restore':
+			runWithRestore = true;
 			main();
 			break;
 	}

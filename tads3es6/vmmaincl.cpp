@@ -160,4 +160,15 @@ int EMSCRIPTEN_KEEPALIVE tads_worker_main()
     err = t3main(argc, argv);
     return err;
 }
+
+int EMSCRIPTEN_KEEPALIVE tads_worker_main_with_restore()
+{
+    int   argc = 4;
+    char *argv[] = {"tr_es6", "-r", "restore.sav", "game.gam"};
+    int err;
+
+    err = t3main(argc, argv);
+    return err;
+}
+
 }
