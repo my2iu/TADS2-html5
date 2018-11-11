@@ -212,6 +212,14 @@ HtmlLexer.prototype.reconstructOpeningTag = function(name, attribs) {
 	return tag;
 };
 
+
+
+
+
+
+
+
+
 // Code for managing the view (i.e. text output etc)
 function TadsView(transcriptElement, statusLineElement)
 {
@@ -220,6 +228,10 @@ function TadsView(transcriptElement, statusLineElement)
 	this.statusLine = statusLineElement;
 	this.isHtmlMode = false;
 	this.bufferedOutput = "";
+	// We insert empty spans into the transcript as things are added to it
+	// so that we can later remove elements if there are too many and the UI
+	// becomes sluggish
+	this.scrollbackSpans = [];
 	// We need a special div for formatting raw non-html text
 	this.plainTranscriptDiv = null;  
 	this.plainStatusLineDiv = null; 
@@ -366,6 +378,55 @@ TadsView.prototype.parseHtmlInto = function(str, element)
 	element.appendChild(this.stringHtmlToDocumentFragment(processedHtml));
 }
 
+
+// We insert empty spans into the transcript as things are added to it
+// so that we have well-defined reference points for removing things
+// from the transcript (i.e. the scrollback buffer) later
+TadsView.prototype.insertScrollbackSpan = function() {
+	var span = document.createElement('span');
+	this.scrollbackSpans.push(span);
+	if (this.isHtmlMode)
+		this.transcript.appendChild(span);
+	else
+		this.plainTranscriptDiv.appendChild(span);
+}
+
+// When a lot of text is added to the transcript, the UI gets sluggish, so the
+// transcript needs to be pruned. 
+TadsView.prototype.pruneScrollbackBuffer = function() {
+	var toRemove = this.scrollbackSpans[0];
+	while (toRemove.previousSibling != null)
+	{
+		toRemove.previousSibling.parentNode.removeChild(toRemove.previousSibling);
+	}
+	var toRemoveParent = toRemove.parentNode;
+	toRemoveParent.removeChild(toRemove);
+	if (toRemoveParent.children.length == 0 && toRemoveParent != this.transcript)
+		toRemoveParent.parentNode.removeChild(toRemoveParent);
+	this.scrollbackSpans.shift();
+}
+
+// Returns the latest span used for determining the current position in the 
+// scrollback buffer
+TadsView.prototype.getCurrentScrollbackSpan = function() {
+	if (this.scrollbackSpans.length == 0) return null;
+	return this.scrollbackSpans[this.scrollbackSpans.length - 1];
+}
+
+// Calculates the scroll position of an element in the transcript
+TadsView.prototype.getSpanScrollPosition = function(span, scroller) {
+	// Figure out the position of the new text
+	var scrollPos = 0;
+	var el = span;
+	while (el != scroller && el != null)
+	{
+		scrollPos += el.offsetTop;
+		el = el.offsetParent;
+	}
+	return scrollPos;
+}
+
+
 TadsView.prototype.forceBufferedOutputFlush = function() {
 	var str = this.bufferedOutput;
 	this.bufferedOutput = "";
@@ -385,8 +446,7 @@ TadsView.prototype.forceBufferedOutputFlush = function() {
 			}
 			this.plainTranscriptDiv.appendChild(document.createTextNode(str));
 		}
-		// Scroll to bottom
-		//document.body.scrollTop = document.body.scrollHeight;
+		this.insertScrollbackSpan();
 	}
 	else if (this.outputStatus == 1)
 	{
@@ -440,6 +500,15 @@ TadsView.prototype.showInputElement = function(el) {
 	var left = el.offsetLeft;
 	el.style.width = 'calc(100% - ' + (left + 1) + 'px)';
 };
+
+
+
+
+
+
+
+
+
 
 // Some functions for extracting resources out of TADS2 .gam files
 

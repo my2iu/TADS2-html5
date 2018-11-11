@@ -13,6 +13,13 @@ function wakeTadsWorker()
 	Atomics.wake(lock, 0, 1);
 }
 
+// We save a <span> in the transcript in the position where you made your last
+// input so that we can keep it on screen when scrolling the transcript.
+var lastInputScrollbackSpan = null;
+
+// So we can cancel a scroll animation and restart it
+var scrollAnimateTimeout = null;
+
 // When the web worker has requested that a file be opened, the file
 // will be copied in pieces (since the buffer is of limited size) from
 // the main thread to the web worker. This stores the Uint8Array of the
@@ -36,24 +43,28 @@ function handleTadsWorker(e)
 		case 'gets':
 			tadsView.outputFlushBeforeInput();
 			tadsView.showInputElement(userInputField);
-			userInputField.focus();
+			focusUserInputWithoutScrolling();
+			pruneTranscriptAndScroll(lastInputScrollbackSpan);
 			asyncExpecting = 'gets';
 			break;
 		case 'getc':
 			tadsView.outputFlushBeforeInput();
 			tadsView.showInputElement(userInputField);
-			userInputField.focus();
+			focusUserInputWithoutScrolling();
+			pruneTranscriptAndScroll(lastInputScrollbackSpan);
 			asyncExpecting = 'getc';
 			break;
 		case 'end':
 			// Interpreter has exited. Flush the output so final messages
 			// can be seen.
 			tadsView.outputFlushBeforeInput();
+			pruneTranscriptAndScroll(lastInputScrollbackSpan);
 			wakeTadsWorker();
 			break;
 		case 'askfile':
 		{
 			tadsView.outputFlushBeforeInput();
+			pruneTranscriptAndScroll(lastInputScrollbackSpan);
 			var prompt = e.data.prompt;
 			var promptType = e.data.promptType;
 			var fileType = e.data.fileType;
@@ -167,6 +178,7 @@ function handleTadsWorker(e)
 			break;
 		case 'more_prompt':
 			tadsView.outputFlushBeforeInput();
+			pruneTranscriptAndScroll(lastInputScrollbackSpan);
 			wakeTadsWorker();
 			break;
 		case 'plain':
@@ -235,6 +247,7 @@ function hookUi()
 		evt.preventDefault();
 		if (window.asyncExpecting == 'gets')
 		{
+			lastInputScrollbackSpan = tadsView.getCurrentScrollbackSpan();
 			window.asyncExpecting = null;
 			let val = userInputField.value;
 			// Echo the user input back to the screen since
@@ -247,9 +260,20 @@ function hookUi()
 			wakeTadsWorker();
 		}
 	});
+	userInputField.addEventListener('keydown', function(evt) {
+		var scroller = document.querySelector('#main');
+		var SLOP = 20;
+		if (scroller.scrollTop + scroller.offsetHeight < scroller.scrollHeight - SLOP)
+		{
+			animateScrollTo(scroller.scrollTop + scroller.offsetHeight - SLOP);
+			evt.preventDefault();
+			evt.stopPropagation();
+		}
+	});
 	userInputField.addEventListener('keypress', function(evt) {
 		if (window.asyncExpecting == 'getc')
 		{
+			lastInputScrollbackSpan = tadsView.getCurrentScrollbackSpan();
 			evt.preventDefault();
 			window.asyncExpecting = null;
 			(new Int32Array(workerBuffer.buffer))[0] = evt.keyCode;//' '.charCodeAt(0);
@@ -258,9 +282,62 @@ function hookUi()
 		}
 	});
 	promptForm.addEventListener('click', function(evt) {
-		userInputField.focus();
+		focusUserInputWithoutScrolling();
 	});
 }
+
+function focusUserInputWithoutScrolling()
+{
+	var y = document.querySelector('#main').scrollTop;
+	userInputField.focus({preventScroll: true});
+	document.querySelector('#main').scrollTop = y;
+}
+
+function pruneTranscriptAndScroll(keepInView)
+{
+	var scroller = document.querySelector('#main');
+	// Prune out transcript elements so that we only have a certain number of
+	// screens of scrollback
+	var SCROLLBACK_SCREENS = 10;
+	var MIN_SCROLLBACK_ELS = 0;
+	while (scroller.scrollHeight > SCROLLBACK_SCREENS * scroller.offsetHeight 
+			&& tadsView.scrollbackSpans.length > MIN_SCROLLBACK_ELS
+			&& tadsView.scrollbackSpans[0] != keepInView)
+	{
+		tadsView.pruneScrollbackBuffer();
+	}
+	
+	// Calculate the desired scroll position
+	var scrollPos = tadsView.getSpanScrollPosition(keepInView, scroller);
+	animateScrollTo(scrollPos);
+}
+
+function animateScrollTo(pos)
+{
+	var scroller = document.querySelector('#main');
+	
+	// Scroll in 10 frames
+	var NUM_FRAMES_PER_SCREEN = 10;
+	var screensToScroll = (pos - scroller.scrollTop) / scroller.offsetHeight;
+	var numFrames = Math.floor(Math.min(1, screensToScroll) * NUM_FRAMES_PER_SCREEN);
+	if (numFrames < 1) numFrames = 1;
+	var count = 0;
+	var scrollAmount = (pos - scroller.scrollTop) / numFrames;
+	var doScroll = null;
+	doScroll = function() {
+		scroller.scrollTop = scroller.scrollTop + scrollAmount;
+		count ++;
+		if (count < numFrames)
+		{
+			scrollAnimateTimeout = window.setTimeout(doScroll, 30);
+		}
+	};
+	if (scrollAnimateTimeout != null)
+		window.clearTimeout(scrollAnimateTimeout);
+	scrollAnimateTimeout = window.setTimeout(doScroll, 30);
+	
+}
+
 function launchFileChooserWrapper(prompt, extension, onfile) {
 	// File chooser must be launched from a user action (not the 
 	// interpeter), so we must create a UI button that the user
