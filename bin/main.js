@@ -316,21 +316,22 @@ function animateScrollTo(pos)
 {
 	var scroller = document.querySelector('#main');
 	
-	// Scroll in 10 frames
-	var NUM_FRAMES_PER_SCREEN = 10;
-	var screensToScroll = (pos - scroller.scrollTop) / scroller.offsetHeight;
-	var numFrames = Math.floor(Math.min(1, screensToScroll) * NUM_FRAMES_PER_SCREEN);
-	if (numFrames < 1) numFrames = 1;
-	var count = 0;
-	var scrollAmount = (pos - scroller.scrollTop) / numFrames;
-	var doScroll = null;
+	var SCROLL_AMOUNT = 100;
 	doScroll = function() {
-		scroller.scrollTop = scroller.scrollTop + scrollAmount;
-		count ++;
-		if (count < numFrames)
+		scrollAnimateTimeout = null;
+		if (Math.abs(scroller.scrollTop - pos) < SCROLL_AMOUNT)
 		{
-			scrollAnimateTimeout = window.setTimeout(doScroll, 30);
+			scroller.scrollTop = pos;
+			return;
 		}
+		var orig = scroller.scrollTop;
+		if (scroller.scrollTop < pos)
+			scroller.scrollTop += SCROLL_AMOUNT;
+		else
+			scroller.scrollTop -= SCROLL_AMOUNT;
+		if (scroller.scrollTop == orig)
+			return;
+		scrollAnimateTimeout = window.setTimeout(doScroll, 30);
 	};
 	if (scrollAnimateTimeout != null)
 		window.clearTimeout(scrollAnimateTimeout);
