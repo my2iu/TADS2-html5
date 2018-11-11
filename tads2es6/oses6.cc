@@ -682,6 +682,7 @@ void os_get_charmap(char *mapname, int charmap_id)
 
 void os_get_special_path(char *buf, size_t buflen, const char *argv0, int id)
 {
+	strcpy(buf, "");
 	fprintf(stderr, "os_get_special_path unimplemented\n");
 }
 

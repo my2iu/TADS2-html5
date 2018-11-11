@@ -4,17 +4,25 @@ set TADSES6=tads2es6\
 set T3ES6=tads3es6\
 set T3DIR=tads3\
 set REG_BUILTIN_CHAR=%T3DIR%vmbifreg.cpp
-rem (for network) set REG_BUILTIN_CHAR=tads3\vmbifregn.cpp
+rem (network version) set REG_BUILTIN_CHAR=tads3\vmbifregn.cpp
 rem set EMCC_AUTODEBUG=1
-rem set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -O2 
-set CCOPTS=-s ASSERTIONS=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s SAFE_HEAP=1 --profiling-funcs -DHTML5 -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP  -DVMGLOB_VARS -DOS_DECLARATIVE_TLS -DTC_TARGET_T3 -DUSE_GENRAND -DUSE_DOSEXT -g 
-set LDOPTS=-s ASSERTIONS=1 -s WASM=1 -s MODULARIZE=1 -s DISABLE_EXCEPTION_CATCHING=0  -s SAFE_HEAP=1 --profiling-funcs -s "EXPORT_NAME='TadsLoader'" -g
+rem set CCOPTS=-s ASSERTIONS=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -s SAFE_HEAP=1 --profiling-funcs -DHTML5 -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP  -DVMGLOB_VARS -DOS_DECLARATIVE_TLS -DTC_TARGET_T3 -DUSE_GENRAND -DUSE_DOSEXT -g 
+rem set LDOPTS=-s ASSERTIONS=1 -s WASM=1 -s MODULARIZE=1 -s DISABLE_EXCEPTION_CATCHING=0  -s SAFE_HEAP=1 --profiling-funcs -s "EXPORT_NAME='TadsLoader'" -g
+set CCOPTS=-s ASSERTIONS=1 -s WASM=1 -s DISABLE_EXCEPTION_CATCHING=0 -DHTML5 -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP  -DVMGLOB_VARS -DOS_DECLARATIVE_TLS -DTC_TARGET_T3 -DUSE_GENRAND -DUSE_DOSEXT -O2 
+set LDOPTS=-s ASSERTIONS=1 -s WASM=1 -s MODULARIZE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s "EXPORT_NAME='TadsLoader'" -O2
 
 mkdir obj
 
 call emcc -std=c++11  -I%T3ES6% -Itads2es6\ -I%T3DIR% -Itads2\ -Itadsunix\ %T3DIR%vmrunsym.cpp %T3DIR%tcprs.cpp %T3DIR%tcprs_rt.cpp %T3DIR%tcprsnf.cpp %T3DIR%tcprsstm.cpp %T3DIR%tcprsnl.cpp %T3DIR%tcgen.cpp %T3DIR%tcglob.cpp %T3DIR%tcerr.cpp %T3DIR%tcerrmsg.cpp %T3DIR%tctok.cpp %T3DIR%tcmain.cpp %T3DIR%tcsrc.cpp %T3DIR%tchostsi.cpp %T3DIR%tclibprs.cpp %T3DIR%tccmdutl.cpp %T3DIR%tct3.cpp %T3DIR%tct3stm.cpp %T3DIR%tct3unas.cpp %T3DIR%tct3nl.cpp %T3DIR%tct3_d.cpp  -o obj/t3dyncomp.o %CCOPTS%
 
+rem (no network version)
 call emcc -std=c++11 -I%T3ES6% -Itads2es6\ -I%T3DIR% -Itads2\ -Itadsunix\ %T3DIR%vmnetfillcl.cpp  -o obj/t3net.o %CCOPTS%
+
+rem TADSNET version
+rem call emcc -std=c++11 -I%T3ES6% -Itads2es6\ -I%T3DIR% -Itads2\ -Itadsunix\ %T3DIR%vmhttpsrv.cpp %T3DIR%vmhttpreq.cpp %T3DIR%vmbifnet.cpp %T3DIR%vmnetui.cpp %T3DIR%vmnetcfg.cpp %T3DIR%vmnetfil.cpp %T3DIR%vmnetfillcl.cpp %T3DIR%osnetdos.cpp %T3DIR%osnetwin.cpp %T3DIR%osnetcli.cpp %T3DIR%osifcnet.cpp %T3DIR%vmrefcnt.cpp %T3DIR%osnet-connect.cpp %T3DIR%osnet-fgwin.cpp %T3DIR%vmnet.cpp -o obj/t3net.o %CCOPTS%
+
+rem (custom network version)
+rem call emcc -std=c++11 -I%T3ES6% -Itads2es6\ -I%T3DIR% -Itads2\ -Itadsunix\ %T3DIR%vmnetfillcl.cpp %T3DIR%vmbifnet.cpp %T3DIR%vmnetfil.cpp -o obj/t3net.o %CCOPTS%
 
 
 call emcc -I%T3ES6% -Itads2es6\ -I%T3DIR% -Itads2\ -Itadsunix tads2es6\oses6.cc tadsunix\osportableread.c %T2DIR%osifc.c %T2DIR%osgen3.c  %T2DIR%osstzprs.c %T2DIR%osrestad.c %TADSES6%osnoui.c -o obj/t3os.o %CCOPTS%
