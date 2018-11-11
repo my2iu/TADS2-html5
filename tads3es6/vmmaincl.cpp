@@ -158,5 +158,6 @@ int EMSCRIPTEN_KEEPALIVE tads_worker_main()
     int err;
 
     err = t3main(argc, argv);
+    return err;
 }
 }

@@ -506,6 +506,19 @@ osfildef *osfoprwb(const char *fname, os_filetype_t typ);
 /* open binary file for reading/writing; truncate; returns NULL on error */
 osfildef *osfoprwtb(const char *fname, int typ)
 {
+	if (typ == OSFTT3SAV && strcmp(fname, "?save1.sav") == 0)
+	{
+		// Special handling of saving a game
+		int id = js_openTempFileForWriting(fname);
+		if (id < 0)
+			return NULL;
+		EsFileProxy *fileProxy = new EsFileProxy();
+		fileProxy->isPosixFile = false;
+		fileProxy->fptr = 0;
+		fileProxy->inMemoryId = id;
+		fileProxy->transferWhenClosed = true;
+		return fileProxy;
+	}
 	fprintf(stderr, "osfoprwtb: %s\n", fname);
 	return wrapFile(fopen(fname, "w+b"));
 }
@@ -585,6 +598,9 @@ int osfdel(const char *fname)
 /* access a file - 0 if file exists */
 int osfacc(const char *fname)
 {
+	fprintf(stderr, "osfaccc %s\n", fname);
+	if (strcmp("game.gam", fname) == 0)
+		return F_OK | R_OK; 
 	return access(fname, 0);
 }
 
@@ -601,6 +617,22 @@ int osfputs(char *buf, osfildef *fp)
 	fprintf(stderr, "osfputs\n");
 	fputs(buf, fp->fptr);
 }
+void os_fprintz(osfildef *fp, const char *str)
+{
+	if (fp->isPosixFile)
+		fprintf(fp->fptr, "%s", str);
+	else
+		fprintf(stderr, "os_fprintz not implemented\n");
+}
+
+void os_fprint(osfildef *fp, const char *str, size_t len)
+{
+	if (fp->isPosixFile)
+    	fprintf(fp->fptr, "%.*s", (int)len, str);
+	else
+		fprintf(stderr, "os_fprint not implemented\n");
+}
+
 /* Unimplemented */
 int os_rename_file(const char *oldname, const char *newname)
 {

@@ -3,7 +3,7 @@ set TADSUNIXDIR=tadsunix\
 set TADSES6=tads2es6\
 rem set EMCC_AUTODEBUG=1
 rem set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -O2 
-set CCOPTS=-s ASSERTIONS=1 -s WASM=1 --profiling-funcs -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP -O2 
+set CCOPTS=-s ASSERTIONS=1 -s WASM=1 --profiling-funcs -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP -DHTML5 -O2 
 set LDOPTS=-s ASSERTIONS=1 -s WASM=1 -s MODULARIZE=1 --profiling-funcs -s "EXPORT_NAME='TadsLoader'" -O2
 
 mkdir obj
@@ -15,7 +15,7 @@ call emcc %TADSDIR%dat.c %TADSDIR%lst.c %TADSDIR%run.c %TADSDIR%out.c %TADSDIR%v
 
 call emcc %TADSDIR%vocab.c %TADSDIR%execmd.c %TADSDIR%ply.c %TADSDIR%qas.c %TADSDIR%trd.c %TADSDIR%dbgtr.c %TADSDIR%linfdum.c %TADSDIR%osrestad.c -I%TADSUNIXDIR% -I%TADSDIR% -o obj\run.o %CCOPTS%
 
-call emcc %TADSDIR%bifgdum.c %TADSDIR%osgen3.c %TADSDIR%os0.c %TADSDIR%osnoui.c %TADSDIR%oem.c %TADSDIR%argize.c %TADSES6%oses6.cc %TADSES6%os0tr.cc -DUSE_DOSEXT -DUSE_GENRAND -I%TADSUNIXDIR% -I%TADSDIR%  -o obj\char.o %CCOPTS%
+call emcc %TADSDIR%bifgdum.c %TADSDIR%osgen3.c %TADSDIR%os0.c %TADSES6%osnoui.c %TADSDIR%oem.c %TADSDIR%argize.c %TADSES6%oses6.cc %TADSES6%os0tr.cc -DUSE_DOSEXT -DUSE_GENRAND -I%TADSUNIXDIR% -I%TADSDIR%  -o obj\char.o %CCOPTS%
 
 call emcc obj\cmnrun.o obj\run.o obj\char.o -I%TADSUNIXDIR% -I%TADSDIR%  -o obj\tr.o  %CCOPTS%
 
