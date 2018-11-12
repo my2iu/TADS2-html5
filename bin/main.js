@@ -136,8 +136,8 @@ function handleTadsWorker(e)
 			else
 			{
 				console.log("We've been asked to save a file, but we don't know why");
+				wakeTadsWorker();
 			}
-			wakeTadsWorker();
 			break;
 		case 'start_html':
 			tadsView.startHtml();
@@ -357,10 +357,16 @@ function showSaveUi(savedGameData)
 	document.body.appendChild(ui);
 	ui.style.display = 'block';
 	ui.id = 'saveRestoreScreen';
+	var close = function() {
+		ui.parentElement.removeChild(ui);
+		wakeTadsWorker();
+	};
 	
 	// Choose a default name
 	var saveInput = ui.querySelector('.saveName input');
 	saveInput.value = new Date().toLocaleString();
+	saveInput.focus();
+	saveInput.setSelectionRange(0, saveInput.value.length);
 
 	// Hide the load from disk section
 	ui.querySelector('.loadDisk').style.display = 'none';
@@ -373,9 +379,11 @@ function showSaveUi(savedGameData)
 	
 	// Hook the save buttons
 	var buttons = ui.querySelectorAll('.saveName a');
-	var close = function() {
-		ui.parentElement.removeChild(ui);
-	};
+	ui.querySelector('.saveName form').addEventListener('submit', (e) => {
+		saveGameToLocalStorageJson(savedGameData, saveInput.value, null)
+		close();
+		e.preventDefault();
+	});
 	buttons[0].addEventListener('click', (e) => {
 		saveGameToLocalStorageJson(savedGameData, saveInput.value, null)
 		close();
