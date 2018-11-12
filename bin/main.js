@@ -29,6 +29,7 @@ var openedFileBeingCopied = null;
 // Game file that is to be run in the TADS interpreter when the interpreter
 // starts up.
 var gameFileArrayBuffer = null;
+var gameFileName = null;
 
 function handleTadsWorker(e)
 {
@@ -80,33 +81,7 @@ function handleTadsWorker(e)
 					fileFilter = ".sav";
 				}
 
-				launchFileChooserWrapper(prompt, fileFilter, function(file) {
-					if (file == null) {
-						asyncExpecting = null;
-						workerBuffer[0] = 0;
-						wakeTadsWorker();
-						return;
-					}
-					// Read in all the data as an array buffer
-					var reader = new FileReader();
-					reader.onload = function(evt) {
-						if (asyncExpecting != 'askfile') return;
-						asyncExpecting = null;
-						// Assign an arbitrary name to the opened file
-						var fname = file.name;
-						openedFiles[fname] = reader.result;
-						writeStringZToWorkerBuffer(fname, workerBuffer, 0);
-						wakeTadsWorker();
-					};
-					reader.onerror = function(evt) {
-						if (asyncExpecting != 'askfile') return;
-						asyncExpecting = null;
-						workerBuffer[0] = 0;
-						wakeTadsWorker();
-					}
-					
-					reader.readAsArrayBuffer(file);
-				});
+				showRestoreUi(fileFilter);
 			}
 			else if (promptType == 2) 
 			{
@@ -156,11 +131,7 @@ function handleTadsWorker(e)
 		case 'transferfile':
 			if (e.data.name == '?save1.sav') 
 			{
-				var saveLink = document.createElement('a');
-				var blob = new Blob([e.data.contents], {type:'application/x-tads-save'});
-				saveLink.href = URL.createObjectURL(blob);
-				saveLink.download = 'tads2SaveGame.sav';
-				saveLink.click();
+				showSaveUi(e.data.contents);
 			}
 			else
 			{
@@ -286,6 +257,219 @@ function hookUi()
 	});
 }
 
+// Goes into local storage and get the JSON containing all the saved games 
+function getGameLocalStorageJson()
+{
+	var old = window.localStorage.getItem('tads/' + gameFileName);
+	if (old != null)
+		return JSON.parse(old);
+	return {};
+}
+
+// Saves a game to the local storage json at the position pos. If pos is null, 
+// then the saved game will be added to the end of the save list (instead of 
+// replacing the saved game at position pos)
+function saveGameToLocalStorageJson(savedGameData, name, pos)
+{
+	let old = getGameLocalStorageJson();
+	if (!old.saves) old.saves = [];
+	var saveEntry
+	if (pos != null)
+	{
+		saveEntry = old.saves[pos];
+	}
+	else
+	{
+		var saveEntry = {};
+		old.saves.push(saveEntry);
+	}
+	if (name != null)
+		saveEntry.name = name;
+	saveEntry.data = base64EncodeArrayBuffer(savedGameData);
+	window.localStorage.setItem('tads/' + gameFileName, JSON.stringify(old));
+
+	saveEntry.data = base64EncodeArrayBuffer(savedGameData);
+	try {
+		window.localStorage.setItem('tads/' + gameFileName, JSON.stringify(old));
+	} 
+	catch (e)
+	{
+		alert('Game did not save properly');
+	}
+}
+
+// Update the UI with the list of saved games
+function fillSavedGameList(base, forLoading, onsave)
+{
+	var saveListEl = base.querySelector('.saveList');
+	saveListEl.innerHTML = '';
+	var existing = getGameLocalStorageJson();
+	if (existing.saves)
+	{
+		for (let n = 0; n < existing.saves.length; n++)
+		{
+			let s = existing.saves[n];
+			let div = document.createElement('div');
+			div.className = 'saveListEntry';
+			div.innerHTML = '<a href="#" class="button">Save Over</a> <a href="#" class="button">Delete</a> <span></span>';
+			div.querySelector('span').textContent = s.name;
+			saveListEl.appendChild(div);
+			if (forLoading)
+				div.querySelectorAll('a')[0].textContent = 'Load';
+			div.querySelectorAll('a')[0].addEventListener('click', e => {
+				e.preventDefault();
+				onsave(n);
+			});
+			div.querySelectorAll('a')[1].addEventListener('click', e => {
+				// Delete
+				let old = getGameLocalStorageJson();
+				old.saves.splice(n, 1);
+				window.localStorage.setItem('tads/' + gameFileName, JSON.stringify(old));
+				fillSavedGameList(base, forLoading, onsave);
+				e.preventDefault();
+			});
+		};
+	}
+}
+
+function base64EncodeArrayBuffer(data)
+{
+	data8 = new Uint8Array(data);
+	var str = '';
+	for (var n = 0; n < data8.length; n++)
+		str += String.fromCharCode(data8[n]);
+	return btoa(str);
+}
+
+function base64DecodeArrayBuffer(str)
+{
+	str = atob(str);
+	var data8 = new Uint8Array(str.length);
+	for (var n = 0; n < data8.length; n++)
+		data8[n] = str.charCodeAt(n);
+	return data8.buffer;
+}
+
+// Show the save game screen
+function showSaveUi(savedGameData)
+{
+	var ui = document.querySelector('#saveRestoreScreenTemplate').cloneNode(true);
+	document.body.appendChild(ui);
+	ui.style.display = 'block';
+	ui.id = 'saveRestoreScreen';
+	
+	// Choose a default name
+	var saveInput = ui.querySelector('.saveName input');
+	saveInput.value = new Date().toLocaleString();
+
+	// Hide the load from disk section
+	ui.querySelector('.loadDisk').style.display = 'none';
+
+	// Fill in the list of existing saved games
+	fillSavedGameList(ui, false, pos => {
+		saveGameToLocalStorageJson(savedGameData, null, pos)
+		close();
+	});
+	
+	// Hook the save buttons
+	var buttons = ui.querySelectorAll('.saveName a');
+	var close = function() {
+		ui.parentElement.removeChild(ui);
+	};
+	buttons[0].addEventListener('click', (e) => {
+		saveGameToLocalStorageJson(savedGameData, saveInput.value, null)
+		close();
+		e.preventDefault();
+	});
+	buttons[1].addEventListener('click', (e) => {
+		var saveLink = document.createElement('a');
+		var blob = new Blob([savedGameData], {type:'application/x-tads-save'});
+		saveLink.href = URL.createObjectURL(blob);
+		var name = saveInput.value;
+		if (!name.endsWith('.sav')) name = name + '.sav'; 
+		saveLink.download = name;
+		saveLink.click();
+		close();
+		e.preventDefault();
+	});
+	buttons[2].addEventListener('click', (e) => {
+		close();
+		e.preventDefault();
+	});
+}
+
+function showRestoreUi(extension)
+{
+	var ui = document.querySelector('#saveRestoreScreenTemplate').cloneNode(true);
+	document.body.appendChild(ui);
+	ui.style.display = 'block';
+	ui.id = 'saveRestoreScreen';
+	var close = function() {
+		ui.parentElement.removeChild(ui);
+	};
+	var wake = function(fname, data) {
+		if (asyncExpecting != 'askfile') return;
+		if (fname == null) {
+			asyncExpecting = null;
+			workerBuffer[0] = 0;
+			wakeTadsWorker();
+		}
+		else
+		{
+			fname = '?.sav';
+			// Assign an arbitrary name to the opened file
+			asyncExpecting = null;
+			openedFiles[fname] = data;
+			writeStringZToWorkerBuffer(fname, workerBuffer, 0);
+			wakeTadsWorker();
+		}
+	};
+	
+	// Hide the save name section
+	ui.querySelector('.saveName').style.display = 'none';
+	
+	// Fill in the list of existing saved games
+	fillSavedGameList(ui, true, pos => {
+		var existing = getGameLocalStorageJson();
+		let name = existing.saves[pos].name;
+		let data = base64DecodeArrayBuffer(existing.saves[pos].data);
+		wake(name, data);
+		close();
+	});
+	
+	// Hook the load buttons
+	var buttons = ui.querySelectorAll('.loadDisk a');
+	buttons[0].addEventListener('click', (e) => {
+		e.preventDefault();
+		launchFileChooser(function(file) {
+			if (file == null) {
+				wake(null, null);
+				close();
+				return;
+			}
+			// Read in all the data as an array buffer
+			var reader = new FileReader();
+			reader.onload = function(evt) {
+				wake(file.name, reader.result);
+				close();
+			};
+			reader.onerror = function(evt) {
+				wake(null, null);
+				close();
+			}
+			
+			reader.readAsArrayBuffer(file);
+		}, extension);
+	});
+	buttons[1].addEventListener('click', (e) => {
+		close();
+		asyncExpecting = null;
+		workerBuffer[0] = 0;
+		wakeTadsWorker();
+		e.preventDefault();
+	});
+}
+
 function focusUserInputWithoutScrolling()
 {
 	var y = document.querySelector('#main').scrollTop;
@@ -339,33 +523,6 @@ function animateScrollTo(pos)
 	
 }
 
-function launchFileChooserWrapper(prompt, extension, onfile) {
-	// File chooser must be launched from a user action (not the 
-	// interpeter), so we must create a UI button that the user
-	// can click to start the file chooser
-	var div = document.createElement('div');
-	document.body.appendChild(div);
-	div.innerHTML = '<a href="javascript:void(0)">Click to load game</a> <a href="javascript:void(0)">Cancel</a>';
-	div.style.position = 'fixed';
-	div.style.left = '0';
-	div.style.right = '0';
-	div.style.top = '0';
-	div.style.bottom = '0';
-	div.style.backgroundColor = 'rgba(0,0,0,0.85)';
-	div.style.textAlign = 'center';
-	div.querySelectorAll('a')[0].onclick = function(e) {
-		launchFileChooser(function(f) {
-			document.body.removeChild(div);
-			onfile(f);
-		}, extension);
-		e.preventDefault();
-	};
-	div.querySelectorAll('a')[1].onclick = function(e) {
-		onfile(null);
-		document.body.removeChild(div);
-		e.preventDefault();
-	};
-}
 function launchFileChooser(onfile, extension)
 {
 	var fileInput = document.createElement('input');
@@ -395,7 +552,7 @@ function loadGameFileFromWeb(url, fileHandler)
 	xhttp.onreadystatechange = function() {
 		if (xhttp.readyState == 4)
 		{
-			fileHandler(xhttp.response);
+			fileHandler(xhttp.response, url);
 			responded = true;
 		}
 	}
@@ -403,7 +560,7 @@ function loadGameFileFromWeb(url, fileHandler)
 		// On a missing file, we get both a readyState 4 and an error
 		// but we only want to call the callback once.
 		if (!responded)
-			fileHandler(null);
+			fileHandler(null, url);
 	}
 	xhttp.open("GET", url, true);
 	xhttp.send();
@@ -416,7 +573,7 @@ function loadGameFileFromDisk(fileHandler)
 			if (file == null) return;
 			var reader = new FileReader();
 			reader.onload = function(evt) {
-				fileHandler(reader.result);
+				fileHandler(reader.result, file.name);
 			};
 			reader.readAsArrayBuffer(file);
 		}, ext);
@@ -428,7 +585,7 @@ window.onload = function() {
 	prestartTadsWebWorker();
 	tadsView = new TadsView(document.querySelector('#transcript'), document.querySelector('#status'));
 	hookUi();
-	function gameFileLoaded(file)
+	function gameFileLoaded(file, name)
 	{
 		if (file == null)
 		{
@@ -437,6 +594,7 @@ window.onload = function() {
 		}
 		document.querySelector('#transcript').innerHTML = '';
 		gameFileArrayBuffer = file;
+		gameFileName = name;
 		startTadsWebWorker();
 		var resourceEntries = readGamIndex(gameFileArrayBuffer);
 		tadsView.addResources(resourceEntries);
