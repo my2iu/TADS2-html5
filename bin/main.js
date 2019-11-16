@@ -38,7 +38,8 @@ function handleTadsWorker(e)
 		case 'printz':
 		{
 			tadsView.print(e.data.str);
-			wakeTadsWorker();
+			tadsWorker.postMessage({type: 'wake'});
+//			wakeTadsWorker();
 			break;
 		}
 		case 'gets':

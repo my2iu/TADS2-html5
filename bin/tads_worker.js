@@ -1,6 +1,7 @@
 var runMainImmediately = false;  // Start the TADS WASM code as soon as it is ready (all other configuration from the main UI thread has already been done)
 var runWithRestore = false;      // Start TADS so that it restore a save game immediately on startup
 var emscriptenReady = false;
+var restartFunc;
 
 function callAndWait(fn)
 {
@@ -110,6 +111,10 @@ addEventListener('message', function(evt) {
 		case 'start_with_restore':
 			runWithRestore = true;
 			main();
+			break;
+			
+		case 'wake':
+			restartFunc();
 			break;
 	}
 });
