@@ -10,7 +10,7 @@ var asyncExpecting = null;
 function wakeTadsWorker()
 {
 	Atomics.xor(lock, 0, 1);
-	Atomics.wake(lock, 0, 1);
+	Atomics.notify(lock, 0, 1);
 }
 
 // We save a <span> in the transcript in the position where you made your last
@@ -38,8 +38,7 @@ function handleTadsWorker(e)
 		case 'printz':
 		{
 			tadsView.print(e.data.str);
-			tadsWorker.postMessage({type: 'wake'});
-//			wakeTadsWorker();
+			wakeTadsWorker();
 			break;
 		}
 		case 'gets':

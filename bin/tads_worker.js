@@ -112,10 +112,6 @@ addEventListener('message', function(evt) {
 			runWithRestore = true;
 			main();
 			break;
-			
-		case 'wake':
-			restartFunc();
-			break;
 	}
 });
 
