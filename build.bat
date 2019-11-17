@@ -4,7 +4,7 @@ set TADSES6=tads2es6\
 rem set EMCC_AUTODEBUG=1
 rem set CCOPTS=-s ASSERTIONS=1 -s SAFE_HEAP=1 --profiling-funcs -O2 
 set CCOPTS=-s ASSERTIONS=1 -s ASYNCIFY -s WASM=1 --profiling-funcs -DOSANSI -DUSE_HTML -DUNIX -DHAVE_STRCASECMP -DHTML5 -O2 
-set LDOPTS=-s ASSERTIONS=1 -s ASYNCIFY -s "ASYNCIFY_IMPORTS=['async_printz']" -s WASM=1 -s MODULARIZE=1 --profiling-funcs -s "EXPORT_NAME='TadsLoader'" -O2
+set LDOPTS=-s ASSERTIONS=1 -s ASYNCIFY -s "ASYNCIFY_IMPORTS=['js_gets','js_printz','js_getc','js_askfile','js_openfile','js_ftransferToMainThread','js_start_html','js_end_html','js_more_prompt','js_plain','js_status','js_get_status','js_score','js_strsc']" -s WASM=1 -s MODULARIZE=1 --profiling-funcs -s "EXPORT_NAME='TadsLoader'" -O2
 
 mkdir obj
 call emcc %TADSDIR%ler.c -I%TADSDIR% -I%TADSUNIXDIR%  -o obj\lib.o %CCOPTS%

@@ -204,21 +204,13 @@ int os_get_exe_filename(char *buf, size_t buflen, const char *argv0)
 
 extern void js_printz(const char *s);
 
-EM_JS(void, async_printz, (const char *s), {
-  var str = UTF8ToString(s);
-  Asyncify.handleSleep(function(wakeUp) {
- 	postMessage({type: 'printz', str: str});
-	restartFunc = wakeUp;
-  });
-});
-
 /* 
  *   os_printz works just like fputs() to stdout: we write a null-terminated
  *   string to the standard output.  
  */
 void os_printz(const char *str)
 {
-	async_printz(str);
+	js_printz(str);
 //    fputs(str, stdout);
 }
 

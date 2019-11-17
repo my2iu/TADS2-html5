@@ -1,14 +1,7 @@
 var runMainImmediately = false;  // Start the TADS WASM code as soon as it is ready (all other configuration from the main UI thread has already been done)
 var runWithRestore = false;      // Start TADS so that it restore a save game immediately on startup
 var emscriptenReady = false;
-var restartFunc;
-
-function callAndWait(fn)
-{
-	var val = Atomics.load(tadsWorkerLock, 0);
-	fn();
-	Atomics.wait(tadsWorkerLock, 0, val);
-}
+var reenterWasmFunc;
 
 // Implementation of in-memory files that hold file contents in the 
 // worker thread before we send the contents back and forth to the 
@@ -81,9 +74,8 @@ function main()
 		runMainImmediately = true;
 
 	// Game has ended. Tell the main UI thread.
-	callAndWait(function() {
-		postMessage({type: 'end'});
-	});
+//	postMessage({type: 'end'});
+//	reenterWasmFunc = function() {};
 }
 
 var tadsWorkerLock;
@@ -114,7 +106,9 @@ addEventListener('message', function(evt) {
 			break;
 			
 		case 'wake':
-			restartFunc();
+			var toCall = reenterWasmFunc;
+			reenterWasmFunc = null;
+			toCall();
 			break;
 	}
 });
